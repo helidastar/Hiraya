@@ -1,47 +1,57 @@
 import Head from "next/head";
+import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useContext } from "react";
-import { useRouter } from "next/router";
-import { TransitionContext } from "./_app";
+import { motion } from "framer-motion";
+import Starfield, { Sparkle } from "../components/Starfield";
+import ThemeToggle from "../components/ThemeToggle";
+import { rise, stagger, ease } from "../lib/motion";
 
 export default function About() {
-  const [show, setShow] = useState(false);
-  const [hideOverlay, setHideOverlay] = useState(false);
-  const router = useRouter();
-  const { showContent } = useContext(TransitionContext);
-
-  useEffect(() => {
-    setTimeout(() => setHideOverlay(true), 400);
-    setTimeout(() => setShow(true), 50);
-  }, []);
-
   return (
-    <div className="relative min-h-screen flex flex-col md:flex-row items-center justify-center animate-gradient-bg overflow-hidden px-4">
+    <div className="sky relative flex min-h-screen items-center overflow-hidden px-5 py-24 text-ink">
       <Head>
         <title>About | Hiraya</title>
       </Head>
-      {/* Cinematic overlay transition */}
-      <div className={`fixed inset-0 z-50 pointer-events-none transition-transform duration-700 ${hideOverlay ? "-translate-y-full" : "translate-y-0"}`} style={{background: "linear-gradient(120deg, #A09ABC, #B6A6CA, #E1D8E9, #D4BEBE)", backgroundSize: "200% 200%"}} />
-      {/* Illustration Side */}
-      <div className={`flex-1 flex items-center justify-center mb-8 md:mb-0 animate-float transition-all duration-700 ${show && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-        <Image src="/journaling.svg" alt="Journaling Illustration" width={340} height={340} className="w-[260px] h-[260px] md:w-[340px] md:h-[340px] object-contain" />
-      </div>
-      {/* Text Side */}
-      <div className={`flex-1 flex flex-col items-center md:items-start justify-center z-10 transition-all duration-700 ${show && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-        <h1 className="font-serif text-3xl md:text-4xl font-bold text-[#A09ABC] mb-4">About Hiraya</h1>
-        <p className="text-lg md:text-xl text-[#6C63A6] max-w-xl text-center md:text-left mb-8">
-          Hiraya is your personal mindfulness companion. This minimalist journaling app helps you reflect, grow, and stay in tune with your emotions. You can write daily entries, tag how you feel, and look back on your past reflections in a calm and clutter-free space. Whether you&apos;re having a great day or facing challenges, Hiraya gives you a safe and private place to understand your thoughts and build emotional strength. It&apos;s simple, serene, and designed to support your journey every step of the way.
-        </p>
-        <button
-          onClick={() => router.push('/auth/login')}
-          className="mt-2 px-8 py-3 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold text-lg shadow-lg hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#A09ABC]/30"
+      <Starfield count={60} seed={4} />
+
+      <header className="fixed inset-x-0 top-0 z-20 flex items-center justify-between px-5 py-4 md:px-8">
+        <Link href="/" className="flex items-center gap-2.5">
+          <Image src="/pictures/logo.png" alt="" width={30} height={30} className="drop-shadow-[0_0_10px_rgb(var(--iris)/0.6)]" />
+          <span className="font-display text-2xl">Hiraya</span>
+        </Link>
+        <ThemeToggle />
+      </header>
+
+      <div className="relative mx-auto grid w-full max-w-5xl items-center gap-12 md:grid-cols-2">
+        <motion.div
+          className="mx-auto"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: [0, -12, 0] }}
+          transition={{ opacity: { duration: 0.8, ease }, y: { duration: 6, repeat: Infinity, ease: "easeInOut" } }}
         >
-          Proceed to Login
-        </button>
+          <Image src="/journaling.svg" alt="" width={340} height={340} className="h-[240px] w-[240px] object-contain drop-shadow-[0_20px_40px_rgb(var(--iris)/0.35)] md:h-[340px] md:w-[340px]" priority />
+        </motion.div>
+
+        <motion.div variants={stagger(0.1, 0.2)} initial="hidden" animate="show" className="text-center md:text-left">
+          <motion.p variants={rise} className="glass mb-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm text-muted shadow-soft">
+            <Sparkle size={12} className="text-iris" />
+            <span className="font-display text-ink">hi·ra·ya</span> the fruit of one&apos;s hopes and dreams
+          </motion.p>
+          <motion.h1 variants={rise} className="font-display text-4xl leading-tight sm:text-5xl">
+            About <span className="text-aurora italic">Hiraya</span>
+          </motion.h1>
+          <motion.p variants={rise} className="mt-5 text-lg leading-relaxed text-muted">
+            Hiraya is your personal mindfulness companion. Write daily entries, tag how you feel, and look back on
+            your past reflections in a calm, clutter-free space. Whether you&apos;re having a great day or facing
+            challenges, Hiraya gives you a safe and private place to understand your thoughts and build emotional
+            strength, one step at a time.
+          </motion.p>
+          <motion.div variants={rise} className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
+            <Link href="/auth/signup" className="btn-primary px-7 py-3">Start your journal</Link>
+            <Link href="/auth/login" className="btn-ghost px-7 py-3">Log in</Link>
+          </motion.div>
+        </motion.div>
       </div>
-      {/* Decorative overlays */}
-      <div className="absolute w-[500px] h-[500px] bg-[#A09ABC]/20 rounded-full top-[-120px] left-[-120px] z-0 blur-2xl" />
-      <div className="absolute w-[300px] h-[300px] bg-[#D4BEBE]/30 rounded-full bottom-[-80px] right-[-80px] z-0 blur-2xl" />
     </div>
   );
 }
