@@ -74,7 +74,7 @@ docs/            Documentation
 
 ## Contributors
 
-Muni was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo)). It is now maintained by Charity Ricabo.
+Muni was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo)).
 
 | Name | GitHub |
 |------|--------|
