@@ -70,10 +70,10 @@
 | Name | GitHub |
 |------|--------|
 | Charity Ricabo (maintainer) | [@helidastar](https://github.com/helidastar) |
-| marshmallowdevz | [@marshmallowdevz](https://github.com/marshmallowdevz) |
+| Aleyah Jose | [@marshmallowdevz](https://github.com/marshmallowdevz) |
 | Maria Mhikyla Jayno | [@mhiksNmatch](https://github.com/mhiksNmatch) |
-| zanacapao | [@zanacapao](https://github.com/zanacapao) |
-| raffybonilla | [@raffybonilla](https://github.com/raffybonilla) |
+| Zana Capao | [@zanacapao](https://github.com/zanacapao) |
+| Raffy Bonilla | [@raffybonilla](https://github.com/raffybonilla) |
 
 ---
 
