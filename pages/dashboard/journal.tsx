@@ -14,19 +14,31 @@ type JournalEntry = {
   updated_at?: string;
   public?: boolean;
   title?: string;
+  mood?: string;
+};
+
+// yyyy-mm-dd in the user's own timezone (toISOString would use UTC)
+const localDateString = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+// Keep the current time for today's entries; use local noon for back-dated ones
+const entryTimestamp = (dateStr: string) => {
+  if (dateStr === localDateString(new Date())) return new Date().toISOString();
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d, 12).toISOString();
 };
 
 export default function Journal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [newEntry, setNewEntry] = useState("");
   const [entryTitle, setEntryTitle] = useState("");
-  const [entryDate, setEntryDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [entryDate, setEntryDate] = useState(() => localDateString(new Date()));
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [emojiModalOpen, setEmojiModalOpen] = useState(false);
-  const [isPublic, setIsPublic] = useState(true);
+  const [isPublic, setIsPublic] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const router = useRouter();
   const moodOptions = ["😐", "😊", "😌", "😥", "🥰", "😪"];
@@ -90,10 +102,30 @@ export default function Journal() {
     fetchEntries();
   }, [router]);
 
+  // The dashboard "New Entry" button links here with ?new=1
+  useEffect(() => {
+    if (router.isReady && router.query.new) {
+      setModalOpen(true);
+      router.replace("/dashboard/journal", undefined, { shallow: true });
+    }
+  }, [router.isReady, router.query.new]);
+
+  const resetForm = () => {
+    setEditingEntry(null);
+    setNewEntry("");
+    setEntryTitle("");
+    setSelectedMood(null);
+    setEntryDate(localDateString(new Date()));
+    setIsPublic(false);
+    setModalOpen(false);
+  };
+
   const openEditEntryModal = (entry: JournalEntry) => {
     setEditingEntry(entry);
     setNewEntry(entry.content);
     setEntryTitle(entry.title || "");
+    setSelectedMood(entry.mood || null);
+    setEntryDate(localDateString(new Date(entry.created_at)));
     setIsPublic(!!entry.public);
     setModalOpen(true);
   };
@@ -112,26 +144,26 @@ export default function Journal() {
         .update({ content: newEntry, public: isPublic, updated_at: new Date().toISOString(), title: entryTitle, mood: selectedMood || undefined })
         .eq("id", editingEntry.id)
         .select();
-      if (!error && data) {
-        setEntries(entries.map(e => e.id === editingEntry.id ? { ...e, content: newEntry, public: isPublic, updated_at: data[0].updated_at } : e));
-        setEditingEntry(null);
-        setNewEntry("");
-        setEntryTitle("");
-        setIsPublic(true);
-        setModalOpen(false);
+      if (!error && data && data[0]) {
+        setEntries(entries.map(e => e.id === editingEntry.id ? data[0] : e));
+        resetForm();
       }
     } else {
       // Add new entry
       const { data, error } = await supabase
         .from("journal")
-        .insert([{ content: newEntry, user_id: session.user.id, public: isPublic }])
+        .insert([{
+          content: newEntry,
+          user_id: session.user.id,
+          public: isPublic,
+          title: entryTitle,
+          mood: selectedMood,
+          created_at: entryTimestamp(entryDate),
+        }])
         .select();
       if (!error && data) {
-        setEntries([data[0], ...entries]);
-        setNewEntry("");
-        setEntryTitle("");
-        setIsPublic(true);
-        setModalOpen(false);
+        setEntries([data[0], ...entries].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+        resetForm();
       }
     }
   };
@@ -247,7 +279,7 @@ export default function Journal() {
               </button>
             </div>
             {/* Add/Edit Entry Modal */}
-            <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setEditingEntry(null); }} title={editingEntry ? "Edit Journal Entry" : "New Journal Entry"}>
+            <Modal isOpen={modalOpen} onClose={resetForm} title={editingEntry ? "Edit Journal Entry" : "New Journal Entry"}>
               <input
                 type="text"
                 placeholder="Entry Title"
