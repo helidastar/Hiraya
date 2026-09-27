@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://xftjumejicbxbaoqfugj.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmdGp1bWVqaWNieGJhb3FmdWdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzMzk5ODEsImV4cCI6MjA2NTkxNTk4MX0.QGWradaCpxJaDn7srZVeu5LnHIjg6GSjipOZ9fx_V-Q';
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env.local and fill them in.');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
