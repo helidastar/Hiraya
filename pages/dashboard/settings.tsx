@@ -364,15 +364,15 @@ export default function Settings() {
           <div className="flex flex-col items-center gap-4">
             <div className="flex gap-1 text-3xl">
               {[1,2,3,4,5].map(star => (
-                <span
+                <button
                   key={star}
-                  style={{ cursor: 'pointer', color: star <= rating ? '#FFD700' : '#A09ABC' }}
+                  type="button"
+                  aria-label={`${star} star${star > 1 ? 's' : ''}`}
+                  style={{ cursor: 'pointer', color: star <= rating ? '#FFD700' : '#A09ABC', background: 'none', border: 'none', padding: 0 }}
                   onClick={() => setRating(star)}
-                  onMouseEnter={() => setRating(star)}
-                  onMouseLeave={() => setRating(rating)}
                 >
-                  ★
-                </span>
+                  <FaStar />
+                </button>
               ))}
             </div>
             <button
