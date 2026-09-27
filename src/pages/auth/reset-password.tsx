@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
+import AuthLayout from '../../components/AuthLayout';
 import { supabase } from '../../lib/supabaseClient';
 
 export default function ResetPassword() {
@@ -54,51 +56,32 @@ export default function ResetPassword() {
   };
 
   return (
-    <>
+    <AuthLayout title="Choose a new password" subtitle="Pick something you haven't used before.">
       <Head>
         <title>Reset Password | Hiraya</title>
       </Head>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#E1D8E9] via-[#B6A6CA] to-[#D4BEBE]">
-        <div className="bg-white/60 rounded-2xl shadow-lg p-8 w-full max-w-md border border-white/30">
-          <h2 className="text-2xl font-bold text-[#A09ABC] mb-6 text-center">Reset Password</h2>
-          {!tokenChecked ? (
-            <div className="text-center text-[#A09ABC]">Loading...</div>
-          ) : (
-            <form onSubmit={handleReset} className="flex flex-col gap-4">
-              <input
-                type="password"
-                placeholder="New Password"
-                className="rounded-md px-4 py-2 border border-[#A09ABC]/30 focus:outline-none focus:ring-2 focus:ring-[#A09ABC] bg-white/80"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                minLength={6}
-                required
-              />
-              <input
-                type="password"
-                placeholder="Confirm New Password"
-                className="rounded-md px-4 py-2 border border-[#A09ABC]/30 focus:outline-none focus:ring-2 focus:ring-[#A09ABC] bg-white/80"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                minLength={6}
-                required
-              />
-              <button
-                type="submit"
-                className="mt-2 py-2 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-bold text-base shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300 hover:shadow-xl w-full disabled:opacity-60"
-                disabled={loading}
-              >
-                {loading ? 'Resetting...' : 'Reset Password'}
-              </button>
-            </form>
-          )}
-          {error && <div className="mt-4 text-red-600 text-center">{error}</div>}
-          {success && <div className="mt-4 text-green-600 text-center">{success}</div>}
-          <div className="mt-6 text-center">
-            <a href="/auth/login" className="text-[#A09ABC] hover:underline">Back to Login</a>
+      {!tokenChecked ? (
+        <p className="text-muted">Loading...</p>
+      ) : (
+        <form onSubmit={handleReset} className="space-y-5">
+          <div>
+            <label htmlFor="new-password" className="label">New password</label>
+            <input id="new-password" type="password" autoComplete="new-password" className="field" value={password} onChange={e => setPassword(e.target.value)} minLength={6} required />
           </div>
-        </div>
-      </div>
-    </>
+          <div>
+            <label htmlFor="confirm-password" className="label">Confirm new password</label>
+            <input id="confirm-password" type="password" autoComplete="new-password" className="field" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={6} required />
+          </div>
+          {error && <p role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">{error}</p>}
+          {success && <p role="status" className="rounded-xl border border-mood-5/60 bg-mood-5/15 px-4 py-3 text-sm">{success}</p>}
+          <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
+            {loading ? 'Resetting...' : 'Reset password'}
+          </button>
+          <p className="text-center text-sm text-muted">
+            <Link href="/auth/login" className="font-semibold text-iris hover:underline">Back to log in</Link>
+          </p>
+        </form>
+      )}
+    </AuthLayout>
   );
 }
