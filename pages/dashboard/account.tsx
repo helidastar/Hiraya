@@ -6,6 +6,7 @@ import Head from "next/head";
 import { useDarkMode } from "../../components/DarkModeContext";
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/router';
+import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
 
 type JournalEntry = {
 id: string;
@@ -203,11 +204,6 @@ return (
 <ellipse cx="120" cy="30" rx="40" ry="12" fill="#D5CFE1" />
 </svg>
 </div>
-{/* Twinkling Stars */}
-<div className="absolute left-1/3 top-1/4 text-[#fff] text-2xl opacity-80 z-0 animate-twinkle">✦</div>
-<div className="absolute right-1/4 bottom-1/3 text-[#fff] text-xl opacity-60 z-0 animate-twinkle">✧</div>
-<div className="absolute left-1/4 bottom-1/4 text-[#fff] text-lg opacity-40 z-0 animate-twinkle" style={{ animationDelay: "1s" }}>✦</div>
-<div className="absolute left-1/2 top-1/6 text-[#fff] text-lg opacity-60 z-0 animate-twinkle" style={{ animationDelay: "2s" }}>✦</div>
 {/* Main Content */}
 <main className={`flex min-h-screen w-full items-center justify-center ${darkMode ? 'bg-gradient-to-br from-[#1a1a2e] via-[#23234a] to-[#23234a]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#B6A6CA] to-[#B6A6CA]'} ${darkMode ? 'dark' : ''}`}>
   <div className={`max-w-xl w-full rounded-3xl shadow-2xl p-12 flex flex-col items-center justify-center relative mx-auto transition-colors duration-300 ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-gradient-to-b from-orange-100 to-purple-200 text-gray-800'}`}>
@@ -424,7 +420,7 @@ return (
       style={{animation: 'fadeInOut 2.5s'}}
     >
       <span className="text-2xl">
-        {notificationType === 'success' ? '✓' : '⚠️'}
+        {notificationType === 'success' ? <FaCheckCircle /> : <FaExclamationTriangle />}
       </span>
       <span className="font-medium text-sm break-words">{notificationMsg}</span>
     </div>

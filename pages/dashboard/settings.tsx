@@ -272,23 +272,6 @@ export default function Settings() {
               background: 'radial-gradient(circle at 60% 40%, #A09ABC 0%, #6C63A6 60%, transparent 100%)',
               animation: 'glowPulse 6s ease-in-out infinite',
             }} />
-            {/* More scattered cute glowing stars */}
-            <div className="star-glow" style={{ position: 'absolute', top: '8%', left: '12%', fontSize: 22, zIndex: 1, animationDuration: '2.5s' }}>✦</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '15%', left: '80%', fontSize: 18, zIndex: 1, animationDuration: '3.2s' }}>✧</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '22%', left: '55%', fontSize: 28, zIndex: 1, animationDuration: '2.8s' }}>✦</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '12%', left: '65%', fontSize: 18, zIndex: 1, animationDuration: '3.5s' }}>✧</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '70%', left: '25%', fontSize: 22, zIndex: 1, animationDuration: '2.7s' }}>✦</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '80%', left: '60%', fontSize: 16, zIndex: 1, animationDuration: '3.1s' }}>✧</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '40%', left: '80%', fontSize: 20, zIndex: 1, animationDuration: '2.9s' }}>✦</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '60%', left: '45%', fontSize: 14, zIndex: 1, animationDuration: '2.6s' }}>✧</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '30%', left: '20%', fontSize: 13, zIndex: 1, animationDuration: '2.2s' }}>✦</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '85%', left: '10%', fontSize: 19, zIndex: 1, animationDuration: '3.3s' }}>✧</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '55%', left: '75%', fontSize: 17, zIndex: 1, animationDuration: '2.4s' }}>✦</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '77%', left: '85%', fontSize: 15, zIndex: 1, animationDuration: '3.6s' }}>✧</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '50%', left: '10%', fontSize: 21, zIndex: 1, animationDuration: '2.3s' }}>✦</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '90%', left: '50%', fontSize: 18, zIndex: 1, animationDuration: '3.7s' }}>✧</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '35%', left: '70%', fontSize: 20, zIndex: 1, animationDuration: '2.1s' }}>✦</div>
-            <div className="star-glow" style={{ position: 'absolute', top: '65%', left: '30%', fontSize: 16, zIndex: 1, animationDuration: '3.4s' }}>✧</div>
           </>
         )}
         <main className={`flex-1 flex items-center justify-center p-6 transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`} style={{ position: 'relative', zIndex: 1 }}>
@@ -371,7 +354,7 @@ export default function Settings() {
                 onClick={() => setChangePw(true)}
                 className={`w-full px-6 py-3 rounded-full ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-white text-[#6C63A6]'} font-semibold shadow hover:bg-[#f0edf6] transition-all duration-300 border border-[#A09ABC]/20`}
               >
-                🔒 Change Password
+                <span className="flex items-center justify-center gap-2"><FaLock aria-hidden /> Change Password</span>
               </button>
               <button
                 onClick={() => setShowLogoutConfirm(true)}
@@ -416,15 +399,6 @@ export default function Settings() {
           0% { opacity: 0.7; filter: blur(60px); }
           50% { opacity: 1; filter: blur(80px); }
           100% { opacity: 0.7; filter: blur(60px); }
-        }
-        .star-glow {
-          color: #fffbe9;
-          text-shadow: 0 0 12px #fffbe9, 0 0 24px #A09ABC, 0 0 36px #B6A6CA;
-          animation: starTwinkle 3s infinite alternate;
-        }
-        @keyframes starTwinkle {
-          0% { opacity: 0.7; text-shadow: 0 0 12px #fffbe9, 0 0 24px #A09ABC, 0 0 36px #B6A6CA; }
-          100% { opacity: 1; text-shadow: 0 0 24px #fffbe9, 0 0 36px #A09ABC, 0 0 48px #B6A6CA; }
         }
       `}</style>
     </>

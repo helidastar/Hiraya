@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import Sidebar from "../../components/Sidebar";
 import { useDarkMode } from "../../components/DarkModeContext";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaTrash } from "react-icons/fa";
 import Head from "next/head";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
@@ -123,21 +123,9 @@ export default function TaskPage() {
         <title>Task Manager | Muni</title>
       </Head>
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      {/* Glowing background for dark mode (background only, zIndex: 0) */}
-      {darkMode && (
-        <>
-          {/* Only glowing stars, no glowing gradient background */}
-          <div className="star-glow" style={{ position: 'fixed', top: '10%', left: '20%', fontSize: 28, zIndex: 0 }}>✦</div>
-          <div className="star-glow" style={{ position: 'fixed', top: '18%', left: '80%', fontSize: 18, zIndex: 0 }}>✧</div>
-          <div className="star-glow" style={{ position: 'fixed', bottom: '12%', left: '25%', fontSize: 22, zIndex: 0 }}>✦</div>
-          <div className="star-glow" style={{ position: 'fixed', bottom: '8%', right: '18%', fontSize: 16, zIndex: 0 }}>✧</div>
-          <div className="star-glow" style={{ position: 'fixed', top: '40%', right: '10%', fontSize: 20, zIndex: 0 }}>✦</div>
-          <div className="star-glow" style={{ position: 'fixed', bottom: '30%', left: '60%', fontSize: 14, zIndex: 0 }}>✧</div>
-        </>
-      )}
       <main className={`flex-1 p-8 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-64'}`} style={{ position: 'relative', zIndex: 1 }}>
         <div className="flex items-center justify-between mb-8">
-          <h2 className={`text-3xl font-bold ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>📝 Task Manager</h2>
+          <h2 className={`text-3xl font-bold ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>Task Manager</h2>
         </div>
         {statusWarning && (
           <div className="mb-4 p-3 rounded-lg bg-yellow-100 text-yellow-800 border border-yellow-300">
@@ -216,7 +204,7 @@ export default function TaskPage() {
                               </span>
                               <div className="flex items-center gap-3 ml-auto">
                                 <span className={`text-base px-4 py-1 rounded-full ${col.key === 'done' ? 'bg-green-200 text-green-700' : col.key === 'inprogress' ? 'bg-blue-200 text-blue-700' : 'bg-[#A09ABC]/20 text-[#A09ABC]'}`}>{col.label}</span>
-                                <button onClick={() => deleteTask(task.id)} className="text-red-500 hover:scale-110 transition-transform text-xl" title="Delete Task">🗑️</button>
+                                <button onClick={() => deleteTask(task.id)} className="text-red-500 hover:scale-110 transition-transform text-xl" title="Delete Task" aria-label="Delete task"><FaTrash /></button>
                               </div>
                             </div>
                           )}
@@ -236,15 +224,6 @@ export default function TaskPage() {
           0% { opacity: 0.7; filter: blur(60px); }
           50% { opacity: 1; filter: blur(80px); }
           100% { opacity: 0.7; filter: blur(60px); }
-        }
-        .star-glow {
-          color: #fffbe9;
-          text-shadow: 0 0 12px #fffbe9, 0 0 24px #A09ABC, 0 0 36px #B6A6CA;
-          animation: starTwinkle 3s infinite alternate;
-        }
-        @keyframes starTwinkle {
-          0% { opacity: 0.7; text-shadow: 0 0 12px #fffbe9, 0 0 24px #A09ABC, 0 0 36px #B6A6CA; }
-          100% { opacity: 1; text-shadow: 0 0 24px #fffbe9, 0 0 36px #A09ABC, 0 0 48px #B6A6CA; }
         }
       `}</style>
     </div>
