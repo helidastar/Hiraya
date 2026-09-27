@@ -5,7 +5,7 @@ const Terms = () => (
     <h1>Terms & Conditions</h1>
     <p><strong>Last updated:</strong> July 7, 2025</p>
     <p>
-      Please read these terms and conditions (&quot;terms&quot;, &quot;terms and conditions&quot;) carefully before using the Muni app operated by us.
+      Please read these terms and conditions (&quot;terms&quot;, &quot;terms and conditions&quot;) carefully before using the Hiraya app operated by us.
     </p>
     <h2>Conditions of Use</h2>
     <p>
@@ -17,7 +17,7 @@ const Terms = () => (
     </p>
     <h2>Intellectual Property</h2>
     <p>
-      Muni was originally built by the ZAMDevs team. The app&apos;s name, design and code belong to its creators. You keep full ownership of the journal entries, comments and other content you create, and you can delete them or your account at any time.
+      Hiraya was originally built by the ZAMDevs team. The app&apos;s name, design and code belong to its creators. You keep full ownership of the journal entries, comments and other content you create, and you can delete them or your account at any time.
     </p>
     <h2>User Accounts</h2>
     <p>
