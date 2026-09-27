@@ -58,7 +58,7 @@ Open [http://localhost:3000](http://localhost:3000). Full setup, including the d
 src/
   pages/         Routes (Next.js Pages Router)
     auth/        Login, signup, logout, password reset
-    dashboard/   Dashboard, journal, mood, tasks, analytics, settings, account
+    dashboard/   Dashboard, journal, check-in, hopes, analytics, settings, account
   components/    Shared UI: sidebar, modals, mood list and mood picker
   lib/           Supabase client, local date helpers, mood logging
   styles/        Global CSS (Tailwind)
@@ -75,6 +75,12 @@ docs/            Documentation
 ## Contributors
 
 Hiraya was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo)).
+
+| | |
+|---|---|
+| **Course** | CPE340 Modern Systems Analysis and Design |
+| **Instructor** | Engr. Mervin John C. Tampus |
+| **Team** | ZAMDevs, 2025 |
 
 | Name | GitHub |
 |------|--------|
