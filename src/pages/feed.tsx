@@ -84,7 +84,7 @@ export default function Feed() {
             mood, 
             public, 
             user_id,
-            profiles:profiles(id, full_name, avatar_url),
+            profiles:profiles!user_id(id, full_name, avatar_url),
             likes(user_id),
             title
           `)
@@ -119,7 +119,10 @@ export default function Feed() {
 
         if (filter === 'popular') entriesWithLikes.sort((a, b) => b.likes_count - a.likes_count);
         setEntries(entriesWithLikes as unknown as FeedEntry[]);
-      } catch {
+      } catch (err) {
+        // Likes also link journal to profiles, so the author join above has to
+        // name its column (profiles!user_id) or Supabase rejects it as ambiguous
+        console.error('Failed to load feed:', err);
         setError('Failed to load feed');
       } finally {
       setLoading(false);
@@ -184,7 +187,7 @@ export default function Feed() {
           text: entry.content.substring(0, 100) + '...',
           url: window.location.href
         });
-      } catch (err) {
+      } catch {
         console.log('Share cancelled');
       }
     } else {

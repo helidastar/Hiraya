@@ -290,7 +290,7 @@ export default function Settings() {
       </Modal>
       <LegalModal open={open === "privacy"} onClose={() => setOpen(null)} title="Privacy Policy">
         <p><strong>Last updated:</strong> July 7, 2025</p>
-        <p>Charity Ricabo ("we", "our", or "us") operates the Hiraya app. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.</p>
+        <p>Charity Ricabo (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) operates the Hiraya app. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.</p>
         <h3>Information We Collect</h3>
         <p>We may collect personal information such as your name, email address, and usage data to provide and improve our services. We do not sell your personal information to third parties.</p>
         <h3>How We Use Your Information</h3>
