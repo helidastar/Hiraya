@@ -100,7 +100,7 @@ flowchart TD
     H --> I{Public entry?}
     I -- Yes --> J[Community feed: likes and comments]
     I -- No --> K[Visible only to the author]
-    F --> L[Task board]
+    F --> L[Hopes]
     F --> M[Analytics]
     F --> N[Settings and account]
 ```
@@ -117,8 +117,8 @@ flowchart TD
 | Password reset | `/auth/forgot-password`, `/auth/reset-password` | Sends a reset email that opens the reset page |
 | Dashboard | `/dashboard` | Welcome, streak, today's mood, month calendar, mood chart, recent activity, monthly report |
 | Journal | `/dashboard/journal` | Entries with title, date, mood, public or private, undo and redo |
-| Mood tracker | `/dashboard/mood` | Pick today's mood, see advice and full mood history |
-| Tasks | `/dashboard/task` | Drag-and-drop Kanban board |
+| Check-in | `/dashboard/mood` | Pick today's mood, optionally write a few lines (saved as a private journal entry), see advice and full mood history |
+| Hopes | `/dashboard/hopes` | Drag-and-drop board of hopes: Dreaming, Working on it, Came true. Stored in the `tasks` table; `/dashboard/task` redirects here |
 | Analytics | `/dashboard/analytics` | Moods and entries per day, and summaries for today, week, month and overall |
 | Community feed | `/feed` | Public entries with likes, comments and share. Authors can edit or delete their own |
 | Settings | `/dashboard/settings` | Dark mode, rating, feedback, legal pages, change password, log out |
@@ -134,7 +134,7 @@ All moods come from one list in `src/components/moods.tsx`: thirteen moods, each
 The value stored in the database is still an emoji character (`moods.emoji`, `journal.mood`) so moods saved by earlier versions keep working. Older values that are no longer in the list are mapped to the closest current mood by `getMood()`.
 
 ### One mood per day
-A user logs at most one mood per day. `src/lib/moodLog.ts` enforces this: saving a mood deletes any mood already logged for that day, then inserts the new one. The dashboard calendar and the mood tracker both use it.
+A user logs at most one mood per day. `src/lib/moodLog.ts` enforces this: saving a mood deletes any mood already logged for that day, then inserts the new one. The dashboard calendar and the check-in page both use it.
 
 ### Local dates
 Dates are calculated in the user's own timezone with `src/lib/dates.ts`. Using `toISOString()` (UTC) would put anything logged before 8am in the Philippines on the previous day. Today's moods and entries store the current time; back-dated ones store local noon.
