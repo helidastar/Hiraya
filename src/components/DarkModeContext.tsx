@@ -17,16 +17,19 @@ export const useDarkMode = () => {
 
 export const DarkModeProvider = ({ children }: { children: ReactNode }) => {
   const [darkMode, setDarkMode] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('darkMode');
-      setDarkMode(stored === 'true');
+      // The script in _document has already picked the theme; match it
+      setDarkMode(document.documentElement.classList.contains('dark'));
+      setReady(true);
     }
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    // Wait until the saved theme has been read, or the first render would undo it
+    if (ready) {
       localStorage.setItem('darkMode', String(darkMode));
       const html = document.documentElement;
       if (darkMode) {
@@ -35,7 +38,7 @@ export const DarkModeProvider = ({ children }: { children: ReactNode }) => {
         html.classList.remove('dark');
       }
     }
-  }, [darkMode]);
+  }, [darkMode, ready]);
 
   return (
     <DarkModeContext.Provider value={{ darkMode, setDarkMode }}>

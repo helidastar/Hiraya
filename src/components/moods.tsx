@@ -49,6 +49,19 @@ export function getMood(value?: string | null): Mood | undefined {
 export const moodLabel = (value?: string | null) => getMood(value)?.label ?? "Unknown";
 export const moodScore = (value?: string | null) => getMood(value)?.score ?? 3;
 
+// Background and text classes for a mood, colored by score from night (1)
+// to sunrise (5). Written out in full so Tailwind keeps them.
+const TONES: Record<number, string> = {
+  1: "bg-mood-1 text-white",
+  2: "bg-mood-2 text-white",
+  3: "bg-mood-3 text-[#1E1A33]",
+  4: "bg-mood-4 text-[#1E1A33]",
+  5: "bg-mood-5 text-[#1E1A33]",
+};
+
+export const moodTone = (value?: string | null) =>
+  getMood(value) ? TONES[moodScore(value)] : "bg-iris-soft text-muted";
+
 export function MoodIcon({ value, className }: { value?: string | null; className?: string }) {
   const Icon = getMood(value)?.Icon ?? FaRegMeh;
   return <Icon className={className} aria-label={moodLabel(value)} />;
