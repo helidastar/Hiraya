@@ -64,6 +64,23 @@ Today's mood, the month in mood colors, your streak and recent activity, all in 
   <sub>Shown with sample data.</sub>
 </div>
 
+## Journal and Hopes
+
+Every entry keeps the mood you felt when you wrote it, shown as a colored edge and tag, and stays private unless you share it. Hopes move from *Dreaming* to *Working on it* to *Came true*; star one or drag it across when it happens.
+
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/journal-dark.jpg">
+    <img src="docs/screenshots/journal-light.jpg" alt="Hiraya journal page: a list of entries, each with a date, title, mood tag such as Calm or Excited, a Private or Public label and the entry text" width="440">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/hopes-dark.jpg">
+    <img src="docs/screenshots/hopes-light.jpg" alt="Hiraya hopes page: three columns, Dreaming, Working on it and Came true, with starred hopes in the Came true column" width="440">
+  </picture>
+  <br>
+  <sub>Shown with sample data.</sub>
+</div>
+
 ## Design
 
 - **Day and night**: a pink-lavender dusk theme and a deep indigo night theme, with starry skies and frosted glass. It follows your device on first visit and remembers your choice after.
