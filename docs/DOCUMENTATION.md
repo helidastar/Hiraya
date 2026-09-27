@@ -1,7 +1,7 @@
-# Muni — Project Documentation
+# Hiraya — Project Documentation
 
 > **Status:** Implemented and in testing, preparing for public deployment on Vercel.
-> Originally built in July 2025 by the ZAMDevs team as *Reflectly*, renamed to *Muni* in September 2026.
+> Originally built in July 2025 by the ZAMDevs team as *Reflectly*, renamed to *Muni* in September 2026, then to *Hiraya*.
 > Diagrams are written in [Mermaid](https://mermaid.js.org/) and render directly on GitHub.
 
 ## Table of Contents
@@ -27,8 +27,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Product** | Muni, a journaling and mood tracking web app |
-| **Name** | From the Filipino *muni-muni*, to reflect or ponder |
+| **Product** | Hiraya, a journaling and mood tracking web app |
+| **Name** | Filipino for the fruit of one's hopes and dreams (*hiraya manawari*) |
 | **Status** | Implemented, in testing |
 | **Primary users** | People who want a private daily journal and mood log |
 | **Frontend** | Next.js 15 (Pages Router), React 19, TypeScript, Tailwind CSS |
@@ -45,7 +45,7 @@
 ### Repository
 | Field | Value |
 |-------|-------|
-| **Repository** | [github.com/helidastar/Muni](https://github.com/helidastar/Muni) |
+| **Repository** | [github.com/helidastar/Hiraya](https://github.com/helidastar/Hiraya) |
 | **Forked from** | [marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo) |
 | **Default branch** | `main` |
 | **Documentation** | `docs/DOCUMENTATION.md` (this file), `docs/ONBOARDING.md` |
@@ -79,7 +79,7 @@
 
 ## 3. Overview
 
-Muni gives each user a private place to write and to notice how they feel over time. A user signs up, logs a mood each day, writes journal entries, and sees their mood patterns on the dashboard and analytics pages. Entries are private unless the user publishes them to the community feed, where other signed-in users can like and comment.
+Hiraya gives each user a private place to write and to notice how they feel over time. A user signs up, logs a mood each day, writes journal entries, and sees their mood patterns on the dashboard and analytics pages. Entries are private unless the user publishes them to the community feed, where other signed-in users can like and comment.
 
 There is no custom backend server. The browser talks to Supabase directly with the public anon key, and **row level security policies in the database decide what each user may read and write** (see [Security](#11-security)).
 
@@ -100,7 +100,7 @@ flowchart TD
     H --> I{Public entry?}
     I -- Yes --> J[Community feed: likes and comments]
     I -- No --> K[Visible only to the author]
-    F --> L[Task board]
+    F --> L[Hopes]
     F --> M[Analytics]
     F --> N[Settings and account]
 ```
@@ -117,8 +117,8 @@ flowchart TD
 | Password reset | `/auth/forgot-password`, `/auth/reset-password` | Sends a reset email that opens the reset page |
 | Dashboard | `/dashboard` | Welcome, streak, today's mood, month calendar, mood chart, recent activity, monthly report |
 | Journal | `/dashboard/journal` | Entries with title, date, mood, public or private, undo and redo |
-| Mood tracker | `/dashboard/mood` | Pick today's mood, see advice and full mood history |
-| Tasks | `/dashboard/task` | Drag-and-drop Kanban board |
+| Check-in | `/dashboard/mood` | Pick today's mood, optionally write a few lines (saved as a private journal entry), see advice and full mood history |
+| Hopes | `/dashboard/hopes` | Drag-and-drop board of hopes: Dreaming, Working on it, Came true. Stored in the `tasks` table; `/dashboard/task` redirects here |
 | Analytics | `/dashboard/analytics` | Moods and entries per day, and summaries for today, week, month and overall |
 | Community feed | `/feed` | Public entries with likes, comments and share. Authors can edit or delete their own |
 | Settings | `/dashboard/settings` | Dark mode, rating, feedback, legal pages, change password, log out |
@@ -134,7 +134,7 @@ All moods come from one list in `src/components/moods.tsx`: thirteen moods, each
 The value stored in the database is still an emoji character (`moods.emoji`, `journal.mood`) so moods saved by earlier versions keep working. Older values that are no longer in the list are mapped to the closest current mood by `getMood()`.
 
 ### One mood per day
-A user logs at most one mood per day. `src/lib/moodLog.ts` enforces this: saving a mood deletes any mood already logged for that day, then inserts the new one. The dashboard calendar and the mood tracker both use it.
+A user logs at most one mood per day. `src/lib/moodLog.ts` enforces this: saving a mood deletes any mood already logged for that day, then inserts the new one. The dashboard calendar and the check-in page both use it.
 
 ### Local dates
 Dates are calculated in the user's own timezone with `src/lib/dates.ts`. Using `toISOString()` (UTC) would put anything logged before 8am in the Philippines on the previous day. Today's moods and entries store the current time; back-dated ones store local noon.
@@ -249,7 +249,7 @@ erDiagram
     }
 ```
 
-`profiles.reflectly_url` keeps its original column name for compatibility; the UI labels it "Muni".
+`profiles.reflectly_url` keeps its original column name for compatibility; the UI labels it "Hiraya".
 
 | Migration | Contents |
 |-----------|----------|
@@ -349,8 +349,11 @@ See [ONBOARDING.md](ONBOARDING.md) for step-by-step setup and deployment.
 
 ## 15. Change Log
 
+### September 2026: Hiraya
+- Renamed from Muni to Hiraya.
+
 ### September 2026: Muni
-- Renamed from Reflectly to Muni. Forked to `helidastar/Muni`.
+- Renamed from Reflectly to Muni. Forked to `helidastar/Muni` (now `helidastar/Hiraya`).
 - Supabase config moved to environment variables. Row level security added for every table and storage.
 - Fixed: new sign-ups saw "already registered", password reset links went to the login page, the dashboard "New Entry" button led to a 404, journal entries lost their title, mood and date, moods landed on the wrong day before 8am, duplicate moods per day, analytics "Today" never counted today, a case-sensitive image path, and an empty page that broke production builds.
 - Journal entries are private by default.

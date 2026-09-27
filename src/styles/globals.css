@@ -1,0 +1,289 @@
+/* stylelint-disable */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* stylelint-enable */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&display=swap');
+
+/* Theme tokens as RGB channels, used by the colors in tailwind.config.js.
+   Dark mode follows the app's own toggle (the "dark" class on <html>). */
+/* Light: a pink-lavender dusk. Dark: a deep indigo night. */
+:root {
+  --paper: 244 239 252;
+  --surface: 255 255 255;
+  --line: 226 216 246;
+  --ink: 42 30 82;
+  --muted: 108 97 148;
+  --iris: 122 90 228;
+  --iris-soft: 238 231 255;
+  --on-iris: 255 255 255;
+  --blush: 242 168 212;
+  --shadow: 76 52 150;
+  --star: 255 255 255;
+  /* The sky behind every page */
+  --sky-top: 250 228 244;
+  --sky-mid: 232 220 252;
+  --sky-low: 214 202 246;
+
+  /* Moods, night to sunrise */
+  --mood-1: 59 63 140;
+  --mood-2: 122 111 184;
+  --mood-3: 185 175 207;
+  --mood-4: 240 167 126;
+  --mood-5: 246 196 83;
+}
+
+.dark {
+  --paper: 24 17 52;
+  --surface: 38 29 76;
+  --line: 64 53 112;
+  --ink: 242 238 255;
+  --muted: 178 168 216;
+  --iris: 190 168 255;
+  --iris-soft: 54 42 104;
+  --on-iris: 24 17 52;
+  --blush: 226 140 200;
+  --shadow: 6 2 20;
+  --star: 255 255 255;
+  --sky-top: 20 14 46;
+  --sky-mid: 38 26 84;
+  --sky-low: 70 48 128;
+
+  --mood-1: 92 98 196;
+  --mood-2: 132 121 196;
+  --mood-3: 150 140 180;
+  color-scheme: dark;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: rgb(var(--ink));
+  background: rgb(var(--paper));
+  transition: background-color 0.4s ease, color 0.4s ease;
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--iris));
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-iris px-5 py-2.5 font-semibold text-on-iris shadow-glow transition hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-surface/70 px-5 py-2.5 font-semibold text-ink backdrop-blur transition hover:border-iris hover:text-iris;
+  }
+  /* Frosted glass, so the sky shows through */
+  .card {
+    @apply rounded-3xl border border-line/80 bg-surface/75 shadow-soft backdrop-blur-xl;
+  }
+  /* A card that lifts and glows a little when you point at it */
+  .card-lift {
+    @apply transition duration-300 hover:-translate-y-1 hover:border-iris/40 hover:shadow-[0_18px_40px_-18px_rgb(var(--iris)/0.55)];
+  }
+  /* Round gradient badge for icons, like the feature icons on the landing page */
+  .icon-badge {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-iris to-blush text-sm text-white shadow-glow;
+  }
+  /* A panel that is always the night sky; add the "dark" class too so text uses night colors */
+  .night {
+    @apply relative overflow-hidden rounded-3xl text-ink shadow-soft;
+    background: linear-gradient(180deg, #140e33, #2a1d5e 65%, #4a3386);
+  }
+  /* A sliver of glowing planet at the foot of a night panel */
+  .planet {
+    @apply pointer-events-none absolute left-1/2 h-[40rem] w-[40rem] -translate-x-1/2 rounded-full;
+    background: radial-gradient(circle at 50% 0%, #fbeaff, #d9a8e8 12%, #9c7ae8 32%, #4a3386 60%);
+    box-shadow: 0 -20px 90px rgb(220 160 240 / 0.45);
+  }
+  .glass {
+    @apply border border-white/40 bg-surface/60 backdrop-blur-xl dark:border-white/10 dark:bg-surface/55;
+  }
+  /* The page background: a soft sky that is dusk in light mode, night in dark */
+  .sky {
+    background:
+      radial-gradient(60% 50% at 85% 0%, rgb(var(--blush) / 0.35), transparent 70%),
+      radial-gradient(50% 40% at 0% 100%, rgb(var(--iris) / 0.22), transparent 70%),
+      linear-gradient(180deg, rgb(var(--sky-top)) 0%, rgb(var(--sky-mid)) 55%, rgb(var(--sky-low)) 100%);
+    background-attachment: fixed;
+  }
+  .text-aurora {
+    @apply bg-gradient-to-r from-iris via-blush to-iris bg-clip-text text-transparent;
+    background-size: 200% auto;
+    animation: aurora 6s ease-in-out infinite;
+  }
+  /* Room for the navigation: bottom tabs on phones,
+     a side rail on tablets and a wider one on desktops */
+  .app-main {
+    @apply min-h-screen px-4 pt-8 sm:px-6 md:pl-[7.5rem] md:pr-8 md:pt-10 lg:pl-[19rem] lg:pr-10;
+    padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 768px) {
+    .app-main { padding-bottom: 4rem; }
+  }
+}
+
+@keyframes aurora {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+.star {
+  animation: star-twinkle var(--dur, 3s) ease-in-out var(--delay, 0s) infinite;
+}
+
+@keyframes shooting {
+  0% { transform: translate(0, 0) rotate(-35deg); opacity: 0; }
+  4% { opacity: 1; }
+  14% { transform: translate(-45vw, 32vw) rotate(-35deg); opacity: 0; }
+  100% { transform: translate(-45vw, 32vw) rotate(-35deg); opacity: 0; }
+}
+.shooting-star {
+  animation: shooting var(--dur, 9s) ease-in var(--delay, 0s) infinite;
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-xl border border-line bg-surface/70 px-4 py-3 backdrop-blur text-ink placeholder:text-muted/70 transition focus:border-iris focus:outline-none focus:ring-4 focus:ring-iris/15;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-semibold text-ink;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-muted;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@layer utilities {
+  .animate-spin-slow {
+    animation: spin 6s linear infinite;
+  }
+}
+
+.font-serif {
+  font-family: 'DM Serif Display', serif;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  0% { left: -60%; }
+  100% { left: 120%; }
+}
+.animate-sweep {
+  animation: sweep 3.5s linear infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+.animate-twinkle {
+  animation: twinkle 2.2s ease-in-out infinite;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 2.2s infinite;
+}
+
+@keyframes cloud-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(60px); }
+}
+.animate-cloud-left {
+  animation: cloud-left 18s linear infinite alternate;
+}
+@keyframes cloud-right {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-40px); }
+}
+.animate-cloud-right {
+  animation: cloud-right 22s linear infinite alternate;
+}
+@keyframes float-moon {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
+}
+.animate-float-moon {
+  animation: float-moon 7s ease-in-out infinite;
+}
+
+@keyframes gradient-bg {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.animate-gradient-bg {
+  background: linear-gradient(120deg, #A09ABC, #B6A6CA, #E1D8E9, #D4BEBE);
+  background-size: 200% 200%;
+  animation: gradient-bg 12s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  10% { opacity: 1; transform: translateY(0) scale(1); }
+  90% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-20px) scale(0.95); }
+}
+.animate-fade-in-out {
+  animation: fadeInOut 2.5s both;
+}

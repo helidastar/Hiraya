@@ -1,6 +1,6 @@
 <div align="center">
 
-# Muni
+# Hiraya
 
 **A calm space to reflect**
 
@@ -20,17 +20,17 @@ A journaling and mood tracking web app. Write daily entries, log how you feel, s
 
 ## About
 
-*Muni* comes from the Filipino *muni-muni*, to reflect or ponder. The app gives each user a private journal, a daily mood log, a simple task board and an analytics view of their mood over time. Entries are private by default. Users can choose to publish an entry to the community feed, where others can like and comment on it.
+*Hiraya* is a Filipino word for the fruit of one's hopes and dreams, as in *hiraya manawari*, "may your heart's wishes come true". The app gives each user a private journal, a daily check-in, a board for their hopes and an analytics view of their mood over time. Entries are private by default. Users can choose to publish an entry to the community feed, where others can like and comment on it.
 
-Muni started in July 2025 as the ZAMDevs team project (originally named Reflectly). This repository is a fork that renames, fixes and prepares it for deployment.
+Hiraya started in July 2025 as the ZAMDevs team project (originally named Reflectly, later Muni). This repository is a fork that renames, fixes and prepares it for deployment.
 
 ## Key Features
 
 - **Journal**: create, edit and delete entries with a title, date and mood
-- **Mood tracker**: log one mood per day from a set of thirteen moods
+- **Daily check-in**: log one mood per day from a set of thirteen moods, with a few optional lines that are saved as a private journal entry
 - **Mood calendar and streaks**: see the current month and your logging streak on the dashboard
 - **Analytics**: average and most common mood for today, this week, this month and overall
-- **Task board**: drag-and-drop To Do, In Progress and Done columns
+- **Hopes**: drag-and-drop Dreaming, Working on it and Came true columns
 - **Community feed**: public entries with likes and comments
 - **Account**: profile picture, header image, bio, social links, password change and account deletion
 - **Light and dark mode**
@@ -42,8 +42,8 @@ Next.js 15 (Pages Router) · React 19 · TypeScript · Tailwind CSS · Supabase 
 ## Quick Start
 
 ```bash
-git clone https://github.com/helidastar/Muni.git
-cd Muni
+git clone https://github.com/helidastar/Hiraya.git
+cd Hiraya
 git checkout development
 npm install
 cp .env.example .env.local   # then fill in your Supabase URL and anon key
@@ -74,7 +74,7 @@ docs/            Documentation
 
 ## Contributors
 
-Muni was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo)).
+Hiraya was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo)).
 
 | Name | GitHub |
 |------|--------|
