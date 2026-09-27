@@ -1,4 +1,4 @@
--- Base schema for Muni
+-- Base schema for Hiraya
 -- Reconstructed from how the app reads and writes data, for setting up a new
 -- Supabase project. On the original project these tables already exist, and
 -- "if not exists" makes this script a no-op there.

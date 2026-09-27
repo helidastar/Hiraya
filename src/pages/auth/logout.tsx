@@ -1,18 +1,22 @@
 import Head from 'next/head';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabaseClient';
-import { FiLogOut } from 'react-icons/fi';
-import { useContext } from 'react';
-import { TransitionContext } from '../_app';
+import { ease } from '../../lib/motion';
+
+// The week in reverse: sunrise fading back to night
+const SUNSET = ["bg-mood-5", "bg-mood-4", "bg-mood-4", "bg-mood-3", "bg-mood-3", "bg-mood-2", "bg-mood-1"];
 
 export default function Logout() {
   const router = useRouter();
-  const { showContent } = useContext(TransitionContext);
+  const [leaving, setLeaving] = useState(false);
 
   async function handleLogout() {
-  await supabase.auth.signOut();
-  router.push("/auth/login");
-}
+    setLeaving(true);
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+  }
 
   const handleCancel = () => {
     if (window.history.length > 2) {
@@ -23,58 +27,36 @@ export default function Logout() {
   };
 
   return (
-    <div
-      className={
-        'relative min-h-screen w-full flex items-center justify-center animate-gradient-bg overflow-hidden transition-all duration-800'
-      }
-      style={{ cursor: 'default' }}
-    >
+    <div className="flex min-h-screen items-center justify-center bg-paper px-5 text-ink">
       <Head>
-        <title>Logout | Muni</title>
-        <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+        <title>Log out | Hiraya</title>
       </Head>
-      {/* Animated Moon */}
-      <div className="absolute top-12 right-32 md:right-48 z-10 animate-float-moon">
-        <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="45" cy="45" rx="40" ry="40" fill="#E1D8E9" />
-          <path d="M45 5a40 40 0 1 0 0 80A32 32 0 1 1 45 5z" fill="#B6A6CA" />
-        </svg>
-      </div>
-      {/* Animated Clouds */}
-      <div className="absolute left-0 top-24 w-1/2 z-10 animate-cloud-left pointer-events-none">
-        <svg width="320" height="80" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="60" cy="60" rx="60" ry="20" fill="#D5CFE1" />
-          <ellipse cx="140" cy="50" rx="50" ry="18" fill="#E1D8E9" />
-          <ellipse cx="220" cy="65" rx="70" ry="22" fill="#B6A6CA" />
-        </svg>
-      </div>
-      <div className="absolute right-0 top-40 w-1/3 z-10 animate-cloud-right pointer-events-none">
-        <svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="50" cy="40" rx="50" ry="15" fill="#E1D8E9" />
-          <ellipse cx="120" cy="30" rx="40" ry="12" fill="#D5CFE1" />
-        </svg>
-      </div>
-      {/* Main content with glassmorphism - perfectly centered */}
-      <div className={`relative z-20 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-6 py-12 bg-white/20 rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-700 ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ minHeight: '340px' }}>
-        <div className="flex flex-col items-center mb-6">
-          <FiLogOut className="text-5xl text-[#A09ABC] mb-2" />
-          <div className="font-serif text-xl font-bold text-[#6C63A6] mb-1 text-center">Oh no! You&#39re leaving...<br/>Are you sure?</div>
+      <motion.div
+        className="card w-full max-w-md p-8 text-center sm:p-10"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease }}
+      >
+        <div className="mx-auto mb-8 flex h-10 max-w-[220px] items-end gap-1.5" aria-hidden>
+          {SUNSET.map((tone, i) => (
+            <motion.div
+              key={i}
+              className={`flex-1 origin-bottom rounded-lg ${tone}`}
+              initial={{ height: '100%' }}
+              animate={{ height: `${100 - i * 11}%` }}
+              transition={{ delay: 0.3 + i * 0.07, duration: 0.6, ease }}
+            />
+          ))}
         </div>
-        <div className="flex flex-col gap-3 w-full items-center">
-          <button
-            className="py-2 px-8 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold text-lg shadow-lg hover:from-[#B6A6CA] hover:to-[#A09ABC] transition"
-            onClick={handleCancel}
-          >
-            Cancel
-          </button>
-          <button
-            className="py-2 px-8 rounded-full border-2 border-[#A09ABC] text-[#A09ABC] font-semibold text-lg bg-white/80 hover:bg-[#E1D8E9] shadow-lg transition"
-            onClick={handleLogout}
-          >
-            Yes, Log Me Out
+        <h1 className="font-display text-3xl">Log out of Hiraya?</h1>
+        <p className="mt-3 text-muted">Your entries and moods are saved. Log back in any time with your email and password.</p>
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-center">
+          <button className="btn-ghost" onClick={handleCancel}>Stay logged in</button>
+          <button className="btn-primary" onClick={handleLogout} disabled={leaving}>
+            {leaving ? 'Logging out...' : 'Log out'}
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

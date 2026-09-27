@@ -18,7 +18,7 @@ export default function About() {
   return (
     <div className="relative min-h-screen flex flex-col md:flex-row items-center justify-center animate-gradient-bg overflow-hidden px-4">
       <Head>
-        <title>About | Muni</title>
+        <title>About | Hiraya</title>
       </Head>
       {/* Cinematic overlay transition */}
       <div className={`fixed inset-0 z-50 pointer-events-none transition-transform duration-700 ${hideOverlay ? "-translate-y-full" : "translate-y-0"}`} style={{background: "linear-gradient(120deg, #A09ABC, #B6A6CA, #E1D8E9, #D4BEBE)", backgroundSize: "200% 200%"}} />
@@ -28,9 +28,9 @@ export default function About() {
       </div>
       {/* Text Side */}
       <div className={`flex-1 flex flex-col items-center md:items-start justify-center z-10 transition-all duration-700 ${show && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-        <h1 className="font-serif text-3xl md:text-4xl font-bold text-[#A09ABC] mb-4">About Muni</h1>
+        <h1 className="font-serif text-3xl md:text-4xl font-bold text-[#A09ABC] mb-4">About Hiraya</h1>
         <p className="text-lg md:text-xl text-[#6C63A6] max-w-xl text-center md:text-left mb-8">
-          Muni is your personal mindfulness companion. This minimalist journaling app helps you reflect, grow, and stay in tune with your emotions. You can write daily entries, tag how you feel, and look back on your past reflections in a calm and clutter-free space. Whether you&apos;re having a great day or facing challenges, Muni gives you a safe and private place to understand your thoughts and build emotional strength. It&apos;s simple, serene, and designed to support your journey every step of the way.
+          Hiraya is your personal mindfulness companion. This minimalist journaling app helps you reflect, grow, and stay in tune with your emotions. You can write daily entries, tag how you feel, and look back on your past reflections in a calm and clutter-free space. Whether you&apos;re having a great day or facing challenges, Hiraya gives you a safe and private place to understand your thoughts and build emotional strength. It&apos;s simple, serene, and designed to support your journey every step of the way.
         </p>
         <button
           onClick={() => router.push('/auth/login')}

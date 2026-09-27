@@ -1,20 +1,19 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import Sidebar from "../../components/Sidebar";
-import { useDarkMode } from "../../components/DarkModeContext";
+import { motion } from "framer-motion";
 import { FaPlus, FaTrash } from "react-icons/fa";
-import Head from "next/head";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import PageShell from "../../components/PageShell";
+import { rise } from "../../lib/motion";
 
+// Columns follow the day: night (not started), sunrise (under way), full sun (done)
 const STATUS_COLUMNS = [
-  { key: "todo", label: "To Do", color: "bg-[#E5C6F7] dark:bg-[#6C63A6]", card: "bg-[#F3E6FF] dark:bg-[#7c3aed]", text: "text-[#6C63A6] dark:text-[#E1D8E9]" }, // Light Purple / Purple
-  { key: "inprogress", label: "In Progress", color: "bg-[#D5CFE1] dark:bg-[#b4aee8]", card: "bg-[#E1D8E9] dark:bg-[#a09abc]", text: "text-[#6C63A6] dark:text-white" }, // Light Periwinkle / Periwinkle
-  { key: "done", label: "Done", color: "bg-[#E0C6F7] dark:bg-[#a084ca]", card: "bg-[#F6E9FF] dark:bg-[#b4aee8]", text: "text-[#6C63A6] dark:text-white" }, // Light Violet / Violet
+  { key: "todo", label: "To do", dot: "bg-mood-2" },
+  { key: "inprogress", label: "In progress", dot: "bg-mood-4" },
+  { key: "done", label: "Done", dot: "bg-mood-5" },
 ];
 
 export default function TaskPage() {
-  const { darkMode } = useDarkMode();
-  const [collapsed, setCollapsed] = useState(true);
   const [tasks, setTasks] = useState<any[]>([]);
   const [newTask, setNewTask] = useState("");
   const [newStatus, setNewStatus] = useState("todo");
@@ -48,7 +47,8 @@ export default function TaskPage() {
     }
   }
 
-  async function addTask() {
+  async function addTask(e?: React.FormEvent) {
+    e?.preventDefault();
     setError(null);
     if (!newTask.trim()) return;
     setAdding(true);
@@ -118,114 +118,104 @@ export default function TaskPage() {
   };
 
   return (
-    <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`} style={{ position: 'relative', overflow: 'hidden' }}>
-      <Head>
-        <title>Task Manager | Muni</title>
-      </Head>
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      <main className={`flex-1 p-8 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-64'}`} style={{ position: 'relative', zIndex: 1 }}>
-        <div className="flex items-center justify-between mb-8">
-          <h2 className={`text-3xl font-bold ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>Task Manager</h2>
-        </div>
-        {statusWarning && (
-          <div className="mb-4 p-3 rounded-lg bg-yellow-100 text-yellow-800 border border-yellow-300">
-            <b>Warning:</b> Your tasks table is missing the <code>status</code> column. Please add a <code>status</code> (text) column in Supabase for Kanban to work.
-          </div>
-        )}
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-800 border border-red-300">
-            <b>Error:</b> {error}
-          </div>
-        )}
-        {/* Add Task */}
-        <div className="flex gap-4 mb-8">
-          <input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            placeholder="Add a new task..."
-            className={`flex-1 px-4 py-2 rounded-lg ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-white/70 text-[#6C63A6]'} focus:outline-none focus:ring-2 focus:ring-[#A09ABC]`}
-          />
+    <PageShell title="Tasks" eyebrow="Drag a task to move it between columns">
+      {statusWarning && (
+        <motion.p variants={rise} role="alert" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
+          The tasks table has no <code>status</code> column, so tasks can&apos;t move between columns. Add a <code>status</code> text column in Supabase.
+        </motion.p>
+      )}
+      {error && (
+        <motion.p variants={rise} role="alert" className="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
+          {error}
+        </motion.p>
+      )}
+
+      <motion.form variants={rise} onSubmit={addTask} className="card mb-8 flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
+        <label htmlFor="new-task" className="sr-only">New task</label>
+        <input
+          id="new-task"
+          type="text"
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+          placeholder="What do you need to do?"
+          className="min-w-0 flex-1 rounded-xl bg-transparent px-4 py-3 text-ink placeholder:text-muted/70 focus:outline-none"
+        />
+        <div className="flex gap-2">
+          <label htmlFor="new-task-status" className="sr-only">Column</label>
           <select
+            id="new-task-status"
             value={newStatus}
             onChange={e => setNewStatus(e.target.value)}
-            className={`px-3 py-2 rounded-lg ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-white/70 text-[#6C63A6]'} border border-[#A09ABC]/30`}
+            className="flex-1 rounded-full border border-line bg-surface/70 px-4 py-2.5 text-sm font-medium text-ink focus:border-iris focus:outline-none sm:flex-none"
           >
             {STATUS_COLUMNS.map(col => (
               <option key={col.key} value={col.key}>{col.label}</option>
             ))}
           </select>
-          <button
-            onClick={addTask}
-            disabled={adding || !newTask.trim()}
-            className={`flex items-center gap-2 px-5 py-2 rounded-full font-bold shadow transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#A09ABC]/30
-              ${adding || !newTask.trim() ? 'opacity-60 cursor-not-allowed' : ''}
-              ${darkMode ? 'bg-[#23234a] text-[#E1D8E9] hover:bg-[#1a1a2e]' : 'bg-gradient-to-r from-[#A09ABC] via-[#B6A6CA] to-[#D5CFE1] text-white hover:from-[#B6A6CA] hover:to-[#A09ABC] animate-pulse'}`}
-          >
-            <FaPlus /> Add
+          <button type="submit" disabled={adding || !newTask.trim()} className="btn-primary">
+            <FaPlus aria-hidden className="text-sm" /> Add task
           </button>
         </div>
-        {/* Kanban Board with Drag and Drop */}
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto w-full">
-            {STATUS_COLUMNS.map((col, colIdx) => (
+      </motion.form>
+
+      <DragDropContext onDragEnd={onDragEnd}>
+        <motion.div variants={rise} className="grid gap-5 md:grid-cols-3">
+          {STATUS_COLUMNS.map((col) => {
+            const columnTasks = tasks.filter(task => (task.status || "todo") === col.key);
+            return (
               <Droppable droppableId={col.key} key={col.key}>
                 {(provided, snapshot) => (
-                  <div
+                  <section
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`rounded-2xl p-4 shadow-xl min-h-[300px] flex flex-col transition-all duration-300
-                      ${col.color}
-                      ${snapshot.isDraggingOver ? 'ring-4 ring-[#A09ABC]/40 scale-105' : ''}
-                      ${colIdx === 0 && collapsed ? 'pl-8' : ''}`}
+                    className={`flex min-h-[320px] flex-col rounded-3xl border p-4 transition-colors duration-200 ${snapshot.isDraggingOver ? 'border-iris bg-iris-soft/80 shadow-glow' : 'border-white/40 bg-surface/50 shadow-soft backdrop-blur-xl dark:border-white/10'}`}
                   >
-                    <div className={`flex items-center gap-2 mb-4 text-lg font-bold ${col.text}`}>{col.label}</div>
-                    <div className="space-y-4 flex-1">
-                      {tasks.filter(task => (task.status || "todo") === col.key).length === 0 && (
-                        <div className={`text-center italic ${darkMode ? 'text-[#A09ABC]' : 'text-white/80'}`}>No tasks</div>
+                    <h2 className="mb-4 flex items-center gap-2.5 px-1 font-semibold">
+                      <span className={`h-2.5 w-2.5 rounded-full ${col.dot}`} aria-hidden />
+                      {col.label}
+                      <span className="ml-auto rounded-full bg-iris-soft px-2.5 py-0.5 text-xs font-semibold text-iris">{columnTasks.length}</span>
+                    </h2>
+                    <div className="flex-1 space-y-2.5">
+                      {columnTasks.length === 0 && !snapshot.isDraggingOver && (
+                        <p className="rounded-2xl border border-dashed border-line px-4 py-8 text-center text-sm text-muted">Drop a task here</p>
                       )}
-                      {tasks.filter(task => (task.status || "todo") === col.key).map((task, idx) => (
+                      {columnTasks.map((task, idx) => (
                         <Draggable draggableId={String(task.id)} index={idx} key={task.id}>
                           {(provided, snapshot) => (
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`rounded-xl p-6 shadow border flex items-center transition-all duration-200 w-full min-h-[70px] text-lg ${col.card} border-white/30 ${col.text} ${snapshot.isDragging ? 'ring-4 ring-[#A09ABC]/40 scale-105' : ''}`}
+                              className={`group flex items-start gap-3 rounded-2xl border bg-surface/90 p-4 transition-[box-shadow,border-color] ${snapshot.isDragging ? 'rotate-2 border-iris shadow-glow' : 'border-line hover:border-iris/40 hover:shadow-[0_14px_30px_-16px_rgb(var(--iris)/0.55)]'}`}
                             >
-                              <span className="flex items-center gap-3 flex-1">
-                                <input
-                                  type="checkbox"
-                                  checked={task.completed}
-                                  onChange={() => toggleTask(task.id, task.completed)}
-                                  className="h-5 w-5 text-[#A09ABC] accent-[#A09ABC]"
-                                />
-                                <span className={`font-semibold ${task.completed ? 'line-through opacity-60' : ''} ${col.text}`}>{task.description}</span>
-                              </span>
-                              <div className="flex items-center gap-3 ml-auto">
-                                <span className={`text-base px-4 py-1 rounded-full ${col.key === 'done' ? 'bg-green-200 text-green-700' : col.key === 'inprogress' ? 'bg-blue-200 text-blue-700' : 'bg-[#A09ABC]/20 text-[#A09ABC]'}`}>{col.label}</span>
-                                <button onClick={() => deleteTask(task.id)} className="text-red-500 hover:scale-110 transition-transform text-xl" title="Delete Task" aria-label="Delete task"><FaTrash /></button>
-                              </div>
+                              <input
+                                type="checkbox"
+                                checked={task.completed}
+                                onChange={() => toggleTask(task.id, task.completed)}
+                                aria-label={`Mark "${task.description}" as ${task.completed ? 'not finished' : 'finished'}`}
+                                className="mt-1 h-4 w-4 shrink-0 accent-iris"
+                              />
+                              <span className={`flex-1 break-words leading-snug ${task.completed ? 'text-muted line-through' : ''}`}>{task.description}</span>
+                              <button
+                                onClick={() => deleteTask(task.id)}
+                                aria-label={`Delete task "${task.description}"`}
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100 dark:hover:bg-red-950/40"
+                              >
+                                <FaTrash aria-hidden className="text-sm" />
+                              </button>
                             </div>
                           )}
                         </Draggable>
                       ))}
                       {provided.placeholder}
                     </div>
-                  </div>
+                  </section>
                 )}
               </Droppable>
-            ))}
-          </div>
-        </DragDropContext>
-      </main>
-      <style jsx global>{`
-        @keyframes glowPulse {
-          0% { opacity: 0.7; filter: blur(60px); }
-          50% { opacity: 1; filter: blur(80px); }
-          100% { opacity: 0.7; filter: blur(60px); }
-        }
-      `}</style>
-    </div>
+            );
+          })}
+        </motion.div>
+      </DragDropContext>
+    </PageShell>
   );
 }

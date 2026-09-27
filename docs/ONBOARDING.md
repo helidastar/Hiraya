@@ -1,6 +1,6 @@
 # Developer Setup
 
-How to get Muni running on your computer and deploy it. Follow the steps in order.
+How to get Hiraya running on your computer and deploy it. Follow the steps in order.
 This guide contains **no secrets**. Never put keys or passwords in the repository, screenshots, or chats.
 
 **Related:** full documentation → [DOCUMENTATION.md](DOCUMENTATION.md)
@@ -16,8 +16,8 @@ This guide contains **no secrets**. Never put keys or passwords in the repositor
 ## 2. Get the code
 
 ```bash
-git clone https://github.com/helidastar/Muni.git
-cd Muni
+git clone https://github.com/helidastar/Hiraya.git
+cd Hiraya
 git checkout development
 npm install
 ```
@@ -88,7 +88,7 @@ npm run build
 ## 8. Deploy to Vercel
 
 1. Sign in to [Vercel](https://vercel.com) with GitHub and click **Add New → Project**.
-2. Import `helidastar/Muni`. Vercel detects Next.js automatically.
+2. Import `helidastar/Hiraya`. Vercel detects Next.js automatically.
 3. Under **Environment Variables**, add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 4. Set the **Production Branch** to `main` (Settings → Git) and deploy.
 5. Add the Vercel URL to Supabase Auth (step 5).

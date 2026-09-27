@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FaTimes } from 'react-icons/fa';
+import { backdrop, panel } from '../lib/motion';
 
 interface ModalProps {
   isOpen: boolean;
@@ -9,71 +12,44 @@ interface ModalProps {
   noBlur?: boolean;
 }
 
-const modalBackdrop = {
-  position: 'fixed' as const,
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  background: 'rgba(160,154,188,0.18)',
-  zIndex: 10000,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)'
-};
-
-const modalBox = {
-  background: 'rgba(255,255,255,0.7)',
-  borderRadius: 16,
-  padding: 0,
-  minWidth: 600,
-  maxWidth: 700,
-  boxShadow: '0 4px 24px #D5CFE1',
-  color: '#A09ABC',
-  position: 'relative' as const,
-  overflow: 'hidden',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)'
-};
-
-const modalHeader = {
-  padding: '32px 48px 0 48px',
-  fontWeight: 700,
-  fontSize: 32,
-  color: '#7c3aed',
-  textAlign: 'center' as const,
-};
-
-const modalContent = {
-  padding: '24px 48px 48px 48px',
-};
-
-const closeBtn = {
-  position: 'absolute' as const,
-  top: 18,
-  right: 24,
-  background: 'none',
-  border: 'none',
-  fontSize: 28,
-  color: '#A09ABC',
-  cursor: 'pointer',
-  lineHeight: 1,
-};
-
+// Pop-up used across the app. Closes on the X, a click outside, or Escape.
 export default function Modal({ isOpen, onClose, children, title, style, noBlur }: ModalProps) {
-  if (!isOpen) return null;
-  const backdropStyle = noBlur
-    ? { ...modalBackdrop, backdropFilter: undefined, WebkitBackdropFilter: undefined }
-    : modalBackdrop;
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
   return (
-    <div style={backdropStyle} onClick={onClose}>
-      <div style={{ ...modalBox, ...style }} onClick={e => e.stopPropagation()}>
-        <button style={closeBtn} onClick={onClose} aria-label="Close Modal">&times;</button>
-        {title && <div style={modalHeader}>{title}</div>}
-        <div style={modalContent}>{children}</div>
-      </div>
-    </div>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          {...backdrop}
+          className={`fixed inset-0 z-[10000] flex items-center justify-center bg-ink/30 p-4 ${noBlur ? '' : 'backdrop-blur-sm'}`}
+          onClick={onClose}
+        >
+          <motion.div
+            {...panel}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            className="card relative max-h-[90vh] w-full max-w-xl overflow-y-auto p-6 text-ink sm:p-8"
+            style={style}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:bg-iris-soft hover:text-ink"
+            >
+              <FaTimes />
+            </button>
+            {title && <h2 className="mb-6 pr-10 font-display text-2xl">{title}</h2>}
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
-} 
+}

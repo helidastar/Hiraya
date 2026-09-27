@@ -1,37 +1,34 @@
-import { MOODS, getMood } from "./moods";
+import { motion } from "framer-motion";
+import { MOODS, getMood, moodTone } from "./moods";
 
-// Compact mood selector used by the journal editors
-export default function MoodPicker({ value, onChange, darkMode }: {
+// Compact mood selector used by the journal editors. Tap a mood again to clear it.
+export default function MoodPicker({ value, onChange }: {
   value: string | null;
   onChange: (value: string | null) => void;
   darkMode?: boolean;
 }) {
   const selected = getMood(value);
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6, color: darkMode ? '#A09ABC' : '#6C63A6' }}>
-        Mood: {selected ? selected.label : 'None'}
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+    <div className="mb-4">
+      <p className="label">
+        Mood <span className="font-normal text-muted">{selected ? `· ${selected.label}` : '(optional)'}</span>
+      </p>
+      <div className="flex flex-wrap gap-1.5">
         {MOODS.map(({ value: mood, label, Icon }) => {
           const active = selected?.value === mood;
           return (
-            <button
+            <motion.button
               key={mood}
               type="button"
               title={label}
               aria-label={label}
               aria-pressed={active}
+              whileTap={{ scale: 0.9 }}
               onClick={() => onChange(active ? null : mood)}
-              style={{
-                fontSize: 22, width: 40, height: 40, borderRadius: 8, border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: active ? '#A09ABC' : (darkMode ? '#23234a' : '#f8f6fa'),
-                color: active ? '#fff' : '#A09ABC',
-              }}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl text-xl transition ${active ? moodTone(mood) : 'bg-paper text-muted hover:bg-iris-soft hover:text-iris'}`}
             >
               <Icon />
-            </button>
+            </motion.button>
           );
         })}
       </div>

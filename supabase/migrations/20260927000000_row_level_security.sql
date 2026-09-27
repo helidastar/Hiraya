@@ -1,4 +1,4 @@
--- Row Level Security for Muni
+-- Row Level Security for Hiraya
 -- Run this in the Supabase SQL editor. It is safe to run more than once.
 --
 -- The app talks to Supabase straight from the browser with the public anon key,

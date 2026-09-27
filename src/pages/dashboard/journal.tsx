@@ -1,14 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/router";
-import Sidebar from "../../components/Sidebar";
-import Head from "next/head";
+import { AnimatePresence, motion } from "framer-motion";
 import Modal from '../../components/Modal';
-import { useDarkMode } from "../../components/DarkModeContext";
+import PageShell from "../../components/PageShell";
+import Starfield from "../../components/Starfield";
 import { FaPlus, FaPen, FaTrash, FaGlobeAsia, FaLock, FaUndo, FaRedo } from "react-icons/fa";
 import MoodPicker from "../../components/MoodPicker";
-import { MoodIcon, moodLabel } from "../../components/moods";
+import { MoodIcon, moodLabel, moodTone } from "../../components/moods";
 import { localDateKey, timestampForDay } from "../../lib/dates";
+import { rise, stagger } from "../../lib/motion";
 
 type JournalEntry = {
   id: string;
@@ -29,7 +30,6 @@ export default function Journal() {
   const [entryDate, setEntryDate] = useState(() => localDateKey());
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [collapsed, setCollapsed] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
@@ -37,27 +37,8 @@ export default function Journal() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [redoStack, setRedoStack] = useState<string[]>([]);
-  const { darkMode } = useDarkMode();
 
   
-  // Generate random stars for dark mode decoration
-  const generateStars = () => {
-    const stars = [];
-    for (let i = 0; i < 15; i++) {
-      stars.push({
-        id: i,
-        top: Math.random() * 100,
-        left: Math.random() * 100,
-        size: Math.random() * 3 + 1,
-        opacity: Math.random() * 0.5 + 0.3,
-        animationDelay: Math.random() * 3
-      });
-    }
-    return stars;
-  };
-  
-  const [stars] = useState(generateStars());
-   
   useEffect(() => {
     async function fetchEntries() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -178,171 +159,127 @@ export default function Journal() {
     setNewEntry(next);
   };
 
-  // Switch style for public/private
-  const switchContainer = {
-    display: 'flex', alignItems: 'center', marginBottom: 16, gap: 8
-  };
-  const switchLabel = {
-    color: '#6C63A6', fontWeight: 500, fontSize: 16
-  };
-  const switchOuter = {
-    width: 44, height: 24, borderRadius: 12, background: isPublic ? 'linear-gradient(90deg, #A09ABC 0%, #B6A6CA 100%)' : '#e5e7eb', position: 'relative' as const, cursor: 'pointer', transition: 'background 0.3s', display: 'inline-block', verticalAlign: 'middle'
-  };
-  const switchInner = {
-    position: 'absolute' as const, top: 2, left: isPublic ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px #D5CFE1', transition: 'left 0.3s'
-  };
-
-  if (loading) {
-    return (
-      <div className={`flex min-h-screen items-center justify-center ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`}>
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#A09ABC]"></div>
-      </div>
-    );
-  }
-
   return (
-    <>
-      <Head>
-        <title>Journal - Muni</title>
-        <meta name="description" content="Your personal journal entries" />
-        <style jsx>{`
-          @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-          }
-        `}</style>
-      </Head>
-      <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`}>
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        <main className={`flex-1 p-10 min-h-screen transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'} relative`}>
-          {/* Glow-in-the-dark stars - only visible in dark mode */}
-          {darkMode && stars.map(star => (
-            <div
-              key={star.id}
-              className="absolute pointer-events-none"
-              style={{
-                top: `${star.top}%`,
-                left: `${star.left}%`,
-                width: `${star.size}px`,
-                height: `${star.size}px`,
-                background: 'radial-gradient(circle, #A09ABC 0%, transparent 70%)',
-                borderRadius: '50%',
-                opacity: star.opacity,
-                animation: `twinkle ${3 + star.animationDelay}s ease-in-out infinite`,
-                boxShadow: `0 0 ${star.size * 2}px ${star.size}px rgba(160, 154, 188, 0.3)`,
-                zIndex: 1
-              }}
-            />
-          ))}
-          <div className="max-w-3xl mx-auto">
-            <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>My Journal</h2>
-            {/* Add Entry Button */}
-            <div className="mb-8 flex justify-end">
-              <button
-                onClick={() => setModalOpen(true)}
-                className={`px-6 py-2 rounded-full font-bold shadow transition-all duration-300 ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white'} hover:from-[#B6A6CA] hover:to-[#A09ABC]`}
-              >
-                <span className="flex items-center gap-2"><FaPlus aria-hidden /> Add Entry</span>
-              </button>
+    <PageShell
+      title="Journal"
+      eyebrow={`${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`}
+      loading={loading}
+      width="max-w-3xl"
+      actions={<button onClick={() => setModalOpen(true)} className="btn-primary"><FaPlus aria-hidden className="text-sm" /> New entry</button>}
+    >
+      <Modal isOpen={modalOpen} onClose={resetForm} title={editingEntry ? "Edit entry" : "New entry"}>
+        <form onSubmit={(e) => { e.preventDefault(); saveEntry(); }}>
+          <div className="mb-4 grid gap-4 sm:grid-cols-[1fr_auto]">
+            <div>
+              <label htmlFor="entry-title" className="label">Title <span className="font-normal text-muted">(optional)</span></label>
+              <input id="entry-title" type="text" value={entryTitle} onChange={e => setEntryTitle(e.target.value)} className="field" />
             </div>
-            {/* Add/Edit Entry Modal */}
-            <Modal isOpen={modalOpen} onClose={resetForm} title={editingEntry ? "Edit Journal Entry" : "New Journal Entry"}>
-              <input
-                type="text"
-                placeholder="Entry Title"
-                value={entryTitle}
-                onChange={e => setEntryTitle(e.target.value)}
-                style={{ width: '100%', borderRadius: 8, padding: 12, border: '1px solid #D5CFE1', color: darkMode ? '#A09ABC' : '#6C63A6', marginBottom: 12, fontSize: 16, background: darkMode ? '#23234a' : '#f8f6fa' }}
-              />
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-                <input
-                  type="date"
-                  value={entryDate}
-                  onChange={e => setEntryDate(e.target.value)}
-                  style={{ borderRadius: 6, border: '1px solid #D5CFE1', padding: '8px 12px', color: darkMode ? '#A09ABC' : '#6C63A6', background: darkMode ? '#23234a' : '#f8f6fa', fontSize: 15 }}
-                />
-              </div>
-              <MoodPicker value={selectedMood} onChange={setSelectedMood} darkMode={darkMode} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <button
-                  style={{ background: darkMode ? '#23234a' : '#f8f6fa', color: '#A09ABC', border: 'none', borderRadius: 6, padding: 8, fontSize: 18, cursor: undoStack.length === 0 ? 'not-allowed' : 'pointer', opacity: undoStack.length === 0 ? 0.5 : 1 }}
-                  onClick={handleUndo}
-                  type="button"
-                  disabled={undoStack.length === 0}
-                  aria-label="Undo"
-                ><FaUndo /></button>
-                <button
-                  style={{ background: darkMode ? '#23234a' : '#f8f6fa', color: '#A09ABC', border: 'none', borderRadius: 6, padding: 8, fontSize: 18, cursor: redoStack.length === 0 ? 'not-allowed' : 'pointer', opacity: redoStack.length === 0 ? 0.5 : 1 }}
-                  onClick={handleRedo}
-                  type="button"
-                  disabled={redoStack.length === 0}
-                  aria-label="Redo"
-                ><FaRedo /></button>
-              </div>
-              <textarea
-                ref={textareaRef}
-                value={newEntry}
-                onChange={handleEntryChange}
-                placeholder="Write your thoughts here..."
-                rows={5}
-                style={{ width: '100%', borderRadius: 8, padding: 12, border: '1px solid #D5CFE1', color: darkMode ? '#A09ABC' : '#6C63A6', marginBottom: 16, resize: 'none', fontSize: 16, background: darkMode ? '#23234a' : '#f8f6fa' }}
-              />
-              <div style={switchContainer}>
-                <span style={{ ...switchLabel, color: darkMode ? '#A09ABC' : '#6C63A6' }}>{isPublic ? 'Public' : 'Private'}</span>
-                <div style={{ ...switchOuter, background: isPublic ? 'linear-gradient(90deg, #A09ABC 0%, #B6A6CA 100%)' : (darkMode ? '#23234a' : '#e5e7eb') }} onClick={() => setIsPublic(v => !v)}>
-                  <div style={switchInner}></div>
-                </div>
-              </div>
-              <button
-                onClick={saveEntry}
-                style={{ width: '100%', padding: '10px 0', borderRadius: 8, background: 'linear-gradient(90deg, #A09ABC 0%, #B6A6CA 100%)', color: '#fff', fontWeight: 600, fontSize: 16, border: 'none', boxShadow: '0 2px 8px #D5CFE1', cursor: 'pointer' }}
-              >
-                {editingEntry ? 'Save Changes' : 'Save Entry'}
-              </button>
-            </Modal>
-            {entries.length === 0 ? (
-              <div className={`${darkMode ? 'text-[#A09ABC] bg-[#23234a]' : 'text-[#6C63A6] bg-white/60'} text-center p-8 rounded-xl backdrop-blur-md border ${darkMode ? 'border-[#23234a]' : 'border-white/30'}`}>
-                No entries yet. Click Add Entry to write your first one.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {entries.map((entry, idx) => (
-                  <div key={entry.id} className={`${darkMode ? 'bg-[#23234a] text-[#A09ABC] border-[#23234a]' : 'bg-white/70 text-[#6C63A6] border-white/30'} rounded-xl p-6 shadow border backdrop-blur-md relative`}>
-                    <div className="flex justify-between items-center mb-3">
-                      <div style={{ fontWeight: 700, fontSize: 20, color: darkMode ? '#A09ABC' : '#7c3aed' }}>
-                        {entry.title && entry.title.trim() !== '' ? entry.title : `Entry #${entries.length - idx}`}
-                        {entry.mood && <span className="ml-3 inline-flex items-center gap-1 text-base font-medium text-[#A09ABC]"><MoodIcon value={entry.mood} /> {moodLabel(entry.mood)}</span>}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>
-                          {new Date(entry.updated_at || entry.created_at).toLocaleString()}
-                        </span>
-                        {entry.public && <span className="bg-[#A09ABC] text-white px-2 py-1 rounded-full text-xs flex items-center gap-1"><FaGlobeAsia aria-hidden /> Public</span>}
-                        {!entry.public && <span className="bg-gray-300 text-[#6C63A6] px-2 py-1 rounded-full text-xs flex items-center gap-1"><FaLock aria-hidden /> Private</span>}
-                        <button
-                          onClick={() => openEditEntryModal(entry)}
-                          className="text-blue-500 hover:text-blue-700 transition-colors ml-2 flex items-center gap-1"
-                        >
-                          <FaPen aria-hidden /> Edit
-                        </button>
-                        <button
-                          onClick={() => deleteEntry(entry.id)}
-                          className="text-red-500 hover:text-red-700 transition-colors flex items-center gap-1"
-                        >
-                          <FaTrash aria-hidden /> Delete
-                        </button>
-                      </div>
-                    </div>
-                    <div className="whitespace-pre-wrap leading-relaxed">
-                      {entry.content}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div>
+              <label htmlFor="entry-date" className="label">Date</label>
+              <input id="entry-date" type="date" value={entryDate} onChange={e => setEntryDate(e.target.value)} className="field" />
+            </div>
           </div>
-        </main>
-      </div>
-    </>
+          <MoodPicker value={selectedMood} onChange={setSelectedMood} />
+          <div className="mb-1.5 flex items-end justify-between">
+            <label htmlFor="entry-body" className="label mb-0">Entry</label>
+            <div className="flex gap-1">
+              <button type="button" onClick={handleUndo} disabled={undoStack.length === 0} aria-label="Undo" className="flex h-8 w-8 items-center justify-center rounded-full text-sm text-muted transition hover:bg-iris-soft hover:text-iris disabled:opacity-40 disabled:hover:bg-transparent"><FaUndo /></button>
+              <button type="button" onClick={handleRedo} disabled={redoStack.length === 0} aria-label="Redo" className="flex h-8 w-8 items-center justify-center rounded-full text-sm text-muted transition hover:bg-iris-soft hover:text-iris disabled:opacity-40 disabled:hover:bg-transparent"><FaRedo /></button>
+            </div>
+          </div>
+          <textarea
+            id="entry-body"
+            ref={textareaRef}
+            value={newEntry}
+            onChange={handleEntryChange}
+            placeholder="What's on your mind?"
+            rows={7}
+            className="field resize-y leading-relaxed"
+          />
+          <div className="mt-5 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isPublic}
+              onClick={() => setIsPublic(v => !v)}
+              className="flex items-center gap-3 text-left"
+            >
+              <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${isPublic ? 'bg-iris' : 'bg-line'}`}>
+                <motion.span layout transition={{ type: 'spring', stiffness: 500, damping: 30 }} className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow ${isPublic ? 'right-0.5' : 'left-0.5'}`} />
+              </span>
+              <span>
+                <span className="block text-sm font-semibold">{isPublic ? 'Public' : 'Private'}</span>
+                <span className="block text-xs text-muted">{isPublic ? 'Shown on the community feed' : 'Only you can see this entry'}</span>
+              </span>
+            </button>
+            <button type="submit" disabled={newEntry.trim() === ""} className="btn-primary">
+              {editingEntry ? 'Save changes' : 'Save entry'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {entries.length === 0 ? (
+        <motion.div variants={rise} className="night dark px-6 pb-28 pt-16 text-center">
+          <Starfield className="absolute" count={30} seed={17} shooting={false} />
+          <div className="planet top-[calc(100%-5rem)]" />
+          <div className="relative">
+          <p className="font-display text-3xl">Your journal is empty</p>
+          <p className="mx-auto mt-2 max-w-sm text-muted">Write about your day, a thought you keep coming back to, or just how you feel right now.</p>
+          <button onClick={() => setModalOpen(true)} className="btn-primary mt-6"><FaPlus aria-hidden className="text-sm" /> Write your first entry</button>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.ol variants={stagger(0.05)} className="space-y-4">
+          <AnimatePresence initial={false}>
+            {entries.map((entry, idx) => {
+              const date = new Date(entry.created_at);
+              return (
+                <motion.li
+                  key={entry.id}
+                  variants={rise}
+                  layout
+                  exit={{ opacity: 0, x: -24, transition: { duration: 0.25 } }}
+                  className="card card-lift group relative flex gap-5 overflow-hidden p-5 sm:p-6"
+                >
+                  {/* Mood spine: the entry's mood color runs down its left edge */}
+                  <span className={`absolute inset-y-0 left-0 w-1.5 ${entry.mood ? moodTone(entry.mood).split(' ')[0] : 'bg-line'}`} aria-hidden />
+                  <span className={`pointer-events-none absolute -left-16 top-1/2 h-40 w-32 -translate-y-1/2 rounded-full opacity-25 blur-2xl transition group-hover:opacity-50 ${entry.mood ? moodTone(entry.mood).split(' ')[0] : 'bg-line'}`} aria-hidden />
+                  <div className="w-12 shrink-0 pl-1 text-center">
+                    <p className="font-display text-3xl leading-none">{date.getDate()}</p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-muted">{date.toLocaleDateString(undefined, { month: 'short' })}</p>
+                  </div>
+                  <article className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <h2 className="font-display text-xl">{entry.title && entry.title.trim() !== '' ? entry.title : `Entry ${entries.length - idx}`}</h2>
+                      {entry.mood && (
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${moodTone(entry.mood)}`}>
+                          <MoodIcon value={entry.mood} /> {moodLabel(entry.mood)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+                      {entry.public ? <FaGlobeAsia aria-hidden /> : <FaLock aria-hidden />}
+                      {entry.public ? 'Public' : 'Private'}
+                      <span aria-hidden>·</span>
+                      {entry.updated_at ? `Edited ${new Date(entry.updated_at).toLocaleDateString()}` : date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                    </p>
+                    <p className="mt-3 whitespace-pre-wrap break-words leading-relaxed">{entry.content}</p>
+                    <div className="mt-4 flex gap-1 sm:opacity-0 sm:transition sm:focus-within:opacity-100 sm:group-hover:opacity-100">
+                      <button onClick={() => openEditEntryModal(entry)} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-muted transition hover:bg-iris-soft hover:text-iris">
+                        <FaPen aria-hidden className="text-xs" /> Edit
+                      </button>
+                      <button onClick={() => deleteEntry(entry.id)} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-muted transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40">
+                        <FaTrash aria-hidden className="text-xs" /> Delete
+                      </button>
+                    </div>
+                  </article>
+                </motion.li>
+              );
+            })}
+          </AnimatePresence>
+        </motion.ol>
+      )}
+    </PageShell>
   );
 }

@@ -1,37 +1,32 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import Sidebar from "../../components/Sidebar";
-import Head from "next/head";
 import { useRouter } from "next/router";
-import { useDarkMode } from "../../components/DarkModeContext";
+import { AnimatePresence, motion } from "framer-motion";
 import { FaTrash } from "react-icons/fa";
-import { MOODS, MoodIcon, getMood, moodLabel } from "../../components/moods";
+import PageShell from "../../components/PageShell";
+import Starfield from "../../components/Starfield";
+import { MOODS, MoodIcon, getMood, moodLabel, moodTone } from "../../components/moods";
 import { localDateKey } from "../../lib/dates";
 import { setMoodForDay } from "../../lib/moodLog";
+import { rise, ease } from "../../lib/motion";
 
-export default function MoodTracker() {
-const [selectedMood, setSelectedMood] = useState("");
 type Mood = {
-id: string;
-emoji: string;
-created_at: string;
-user_id?: string;
+  id: string;
+  emoji: string;
+  created_at: string;
+  user_id?: string;
 };
 
+export default function MoodTracker() {
+  const [selectedMood, setSelectedMood] = useState("");
   const [moodData, setMoodData] = useState<Mood[]>([]);
   const [loading, setLoading] = useState(true);
-  const [collapsed, setCollapsed] = useState(true);
-  const router = useRouter();
-  const { darkMode } = useDarkMode();
   const [showAdvice, setShowAdvice] = useState(false);
+  const router = useRouter();
 
-  // Change this variable to switch between horizontal and vertical layouts
-  const layoutDirection = "flex-col gap-8"; // use "flex-row gap-12" for horizontal
-  const isVertical = layoutDirection === "flex-col gap-8";
-
-useEffect(() => {
-fetchMoodData();
-}, []);
+  useEffect(() => {
+    fetchMoodData();
+  }, []);
 
   async function fetchMoodData() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -63,98 +58,110 @@ fetchMoodData();
     fetchMoodData();
   }
 
-async function deleteMood(id: string) {
-await supabase.from("moods").delete().eq("id", id);
-setMoodData(moodData.filter((m) => m.id !== id));
-}
+  async function deleteMood(id: string) {
+    await supabase.from("moods").delete().eq("id", id);
+    setMoodData(moodData.filter((m) => m.id !== id));
+  }
 
-if (loading) {
-return (
-<div className={`flex min-h-screen items-center justify-center ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`}>
-<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#A09ABC]"></div>
-</div>
-);
-}
+  const latest = getMood(moodData[0]?.emoji);
 
   return (
-    <>
-      <Head>
-        <title>Mood Tracker - Muni</title>
-        <meta name="description" content="Track your daily moods" />
-      </Head>
-      <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`}>
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        <main className={`flex-1 p-10 min-h-screen transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`}>
-          <div className="max-w-7xl mx-auto">
-            <h2 className={`text-4xl font-bold mb-10 ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>Mood Tracker</h2>
-            <div className="w-full flex justify-center items-stretch">
-              <div className={`w-full flex ${layoutDirection} bg-white/80 dark:bg-[#23234a] rounded-3xl shadow-lg border border-white/30 dark:border-[#23234a] p-4 md:p-12 max-h-screen overflow-auto`}>
-                {/* Emoji Picker (left) */}
-                <div className="flex flex-col flex-1 justify-between">
-                  <h3 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>How are you feeling today?</h3>
-                  <p className={`-mt-4 mb-6 text-sm ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>You can log one mood per day. Saving again replaces today's mood.</p>
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="flex flex-wrap gap-4 justify-center w-full">
-                          {MOODS.map(({ value: mood }) => (
-                            <button
-                              key={mood}
-                              onClick={() => setSelectedMood(mood)}
-                              title={moodLabel(mood)}
-                              className={`w-24 h-24 text-3xl rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 font-bold text-center shadow-md ${
-                                selectedMood === mood 
-                                  ? 'bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white' 
-                                  : darkMode ? 'bg-[#23234a] text-[#A09ABC] hover:bg-[#23234a]/80' : 'bg-white text-[#6C63A6] hover:bg-white'
-                              }`}
-                            >
-                              <MoodIcon value={mood} />
-                              <span className="text-xs mt-2 font-semibold">{moodLabel(mood)}</span>
-                            </button>
-                          ))}
-                    </div>
-                  </div>
-                  <button
-                    onClick={submitMood}
-                    disabled={!selectedMood}
-                    className="px-10 py-5 mt-10 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white text-2xl font-bold shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Save Mood
-                  </button>
-                  {/* Show advice/task only after saving mood */}
-                  {showAdvice && (
-                    <div className="mt-8 text-xl font-semibold text-center text-[#6C63A6] dark:text-[#A09ABC]">
-                      {getMood(moodData[0]?.emoji)?.advice || "Thank you for sharing your mood. Take care of yourself today."}
-                    </div>
-                  )}
-                </div>
-                {/* Mood History (right) */}
-                <div className={`flex flex-col flex-1 ${isVertical ? "mt-8" : "ml-12"}`}>
-                  <h3 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>Mood History</h3>
-                  <div className="flex-1 flex flex-col justify-start">
-                    {moodData.length === 0 ? (
-                      <div className={`text-center py-16 text-xl ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>No moods logged yet.</div>
-                    ) : (
-                      <ul className="space-y-6 overflow-y-auto max-h-[400px] pr-2">
-                        {moodData.map((mood) => (
-                          <li key={mood.id} className={`${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-white text-[#6C63A6]'} rounded-xl p-6 flex justify-between items-center text-xl shadow-md`}>
-                            <span className="flex items-center gap-3"><MoodIcon value={mood.emoji} className="text-3xl" /><span className="font-semibold">{moodLabel(mood.emoji)}</span></span>
-                            <span className="text-lg">{new Date(mood.created_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                            <button
-                              onClick={() => deleteMood(mood.id)}
-                              className="text-red-500 hover:text-red-700 text-lg font-bold flex items-center gap-2"
-                            >
-                              <FaTrash aria-hidden /> Delete
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+    <PageShell title="Mood tracker" eyebrow="One mood per day" loading={loading}>
+      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+        {/* The check-in is always the night sky, like the phone on the landing page */}
+        <motion.section variants={rise} className="night dark p-6 sm:p-8">
+          <Starfield className="absolute" count={30} seed={13} shooting={false} />
+          <div className="planet top-[calc(100%-3.5rem)] opacity-80" />
+          <div className="relative">
+          <h2 className="font-display text-3xl">How are you feeling today?</h2>
+          <p className="mt-1 text-muted">Saving again replaces today&apos;s mood.</p>
+          <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-5">
+            {MOODS.map(({ value: mood, label, Icon }) => {
+              const active = selectedMood === mood;
+              return (
+                <motion.button
+                  key={mood}
+                  type="button"
+                  aria-pressed={active}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.94 }}
+                  onClick={() => setSelectedMood(mood)}
+                  className={`relative flex flex-col items-center gap-2 rounded-2xl border px-2 py-4 text-sm font-medium transition-colors ${active ? `${moodTone(mood)} border-transparent shadow-glow` : 'border-white/10 bg-white/[0.06] text-ink backdrop-blur hover:border-iris/60'}`}
+                >
+                  {active && <motion.span layoutId="mood-ring" className="absolute -inset-1 rounded-[1.2rem] ring-2 ring-white/80" transition={{ duration: 0.4, ease }} />}
+                  <Icon className="text-3xl" aria-hidden />
+                  {label}
+                </motion.button>
+              );
+            })}
           </div>
-        </main>
+          <button onClick={submitMood} disabled={!selectedMood} className="btn-primary mt-7 w-full py-3.5 text-base sm:w-auto sm:px-10">
+            Save mood
+          </button>
+          <AnimatePresence>
+            {showAdvice && latest && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease }}
+                className={`mt-6 flex items-center gap-4 rounded-2xl p-5 ${moodTone(latest.value)}`}
+                role="status"
+              >
+                <latest.Icon className="shrink-0 text-3xl" aria-hidden />
+                <div>
+                  <p className="font-semibold">Saved: {latest.label}</p>
+                  <p className="opacity-80">{latest.advice}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          </div>
+        </motion.section>
+
+        <motion.section variants={rise} className="card flex flex-col p-6 sm:p-8">
+          <div className="flex items-baseline justify-between">
+            <h2 className="font-display text-2xl">History</h2>
+            <span className="text-sm text-muted">{moodData.length} logged</span>
+          </div>
+          {moodData.length === 0 ? (
+            <p className="mt-6 rounded-2xl border border-dashed border-line px-6 py-12 text-center text-muted">
+              Your moods will show up here once you log one.
+            </p>
+          ) : (
+            <ul className="-mr-2 mt-5 max-h-[520px] space-y-2 overflow-y-auto pr-2">
+              <AnimatePresence initial={false}>
+                {moodData.map((mood) => (
+                  <motion.li
+                    key={mood.id}
+                    layout
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: 24 }}
+                    transition={{ duration: 0.3, ease }}
+                    className="group flex items-center gap-3 rounded-2xl p-2 pr-3 transition hover:bg-iris-soft/60"
+                  >
+                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl ${moodTone(mood.emoji)}`}>
+                      <MoodIcon value={mood.emoji} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold">{moodLabel(mood.emoji)}</p>
+                      <p className="text-sm text-muted">{new Date(mood.created_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                    </div>
+                    <button
+                      onClick={() => deleteMood(mood.id)}
+                      aria-label={`Delete mood from ${new Date(mood.created_at).toLocaleDateString()}`}
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-muted opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100 dark:hover:bg-red-950/40"
+                    >
+                      <FaTrash aria-hidden />
+                    </button>
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </ul>
+          )}
+        </motion.section>
       </div>
-    </>
+    </PageShell>
   );
 }
