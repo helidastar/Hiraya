@@ -5,8 +5,7 @@ import Sidebar from "../../components/Sidebar";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import {
-  FaMoon, FaPalette, FaGlobe, FaBell,
-  FaLock, FaInfoCircle, FaQuestionCircle,
+  FaMoon, FaLock,
   FaStar, FaShareAlt, FaFileAlt, FaFileContract, FaCookieBite, FaCommentDots, FaSignOutAlt
 } from "react-icons/fa";
 import { useDarkMode } from "../../components/DarkModeContext";
@@ -87,7 +86,6 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const { darkMode, setDarkMode } = useDarkMode();
   
-  const [notifications, setNotifications] = useState(true);
   const [modal, setModal] = useState<{title: string, content: React.ReactNode} | null>(null);
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [changePw, setChangePw] = useState(false);
@@ -117,16 +115,6 @@ export default function Settings() {
     await supabase.auth.signOut();
     router.push("/auth/login");
   }
-
-  const preferences = [
-    { icon: <FaPalette />, label: "Appearance" },
-    { icon: <FaGlobe />, label: "Language", note: "English" },
-    { icon: <FaBell />, label: "Notifications", note: notifications ? 'On' : 'Off' },
-    { icon: <FaLock />, label: "Privacy" },
-    { icon: <FaLock />, label: "Security" },
-    { icon: <FaQuestionCircle />, label: "Help" },
-    { icon: <FaInfoCircle />, label: "About" },
-  ];
 
   if (loading) {
     return (
@@ -286,20 +274,6 @@ export default function Settings() {
             <div className="px-6 pt-8 pb-2">
               <h2 className="text-2xl font-bold text-center text-[#A09ABC] mb-6">Settings</h2>
               <ul className="space-y-1">
-                <li className="flex items-center justify-between py-3 border-b border-[#E1D8E9]">
-                  <div className="flex items-center gap-4 text-[#6C63A6]">
-                    <FaBell className="text-lg" />
-                    <span className="font-medium">Notification</span>
-                </div>
-                <button
-                    onClick={() => setNotifications(!notifications)}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${notifications ? 'bg-[#A09ABC]' : 'bg-gray-300'}`}
-                >
-                  <div
-                      className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${notifications ? 'translate-x-6' : ''}`}
-                  />
-                </button>
-                </li>
                 <li className="flex items-center justify-between py-3 border-b border-[#E1D8E9]">
                   <div className="flex items-center gap-4 text-[#6C63A6]">
                     <FaMoon className="text-lg" />
