@@ -47,6 +47,23 @@ Most journaling apps are either a blank page or a long form. **Hiraya** keeps it
 - **Community feed**: read entries others chose to share, and like or comment on them
 - **Account**: profile picture, cover image, bio, social links, password change and account deletion
 
+## Dashboard
+
+Today's mood, the month in mood colors, your streak and recent activity, all in one place. On phones the navigation moves to a bottom tab bar with the check-in button in the middle.
+
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-desktop-dark.jpg">
+    <img src="docs/screenshots/dashboard-desktop-light.jpg" alt="Hiraya dashboard on desktop: a greeting, a 27 day streak, today's mood card showing Calm, and a September calendar with each day in its mood color, beside the side navigation rail" width="680">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-mobile-dark.jpg">
+    <img src="docs/screenshots/dashboard-mobile-light.jpg" alt="Hiraya dashboard on a phone: the greeting, streak and today's mood card, with the bottom tab bar and raised check-in button" width="197">
+  </picture>
+  <br>
+  <sub>Shown with sample data.</sub>
+</div>
+
 ## Design
 
 - **Day and night**: a pink-lavender dusk theme and a deep indigo night theme, with starry skies and frosted glass. It follows your device on first visit and remembers your choice after.
