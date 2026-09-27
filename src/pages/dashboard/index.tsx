@@ -16,17 +16,18 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { rise, stagger, ease, backdrop, panel } from '../../lib/motion';
 
+// A logged mood as read from the moods table
+type MoodRow = { emoji: string; created_at: string };
+
 export default function Dashboard() {
   type UserProfile = { first_name: string; id: string };
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { darkMode } = useDarkMode();
-  // Add missing state variables
-  const [recentMood, setRecentMood] = useState<any>(null);
-  const [recentJournal, setRecentJournal] = useState<any>(null);
-  const [recentTask, setRecentTask] = useState<any>(null);
-  const [todayMood, setTodayMood] = useState<any>(null);
+  const [recentMood, setRecentMood] = useState<MoodRow | null>(null);
+  const [recentJournal, setRecentJournal] = useState<{ title: string | null; created_at: string } | null>(null);
+  const [recentTask, setRecentTask] = useState<{ description: string; created_at: string; completed_at: string | null } | null>(null);
+  const [todayMood, setTodayMood] = useState<MoodRow | null>(null);
 
   // Add missing state and constants for dashboard functionality
   const [streak, setStreak] = useState(0);
@@ -41,16 +42,6 @@ export default function Dashboard() {
 
   const moodOptions = MOODS.map((m) => m.value);
 
-  const motivationalQuotes = [
-    "Keep going, you’re doing great!",
-    "Every day is a fresh start.",
-    "Progress, not perfection.",
-    "You are stronger than you think.",
-    "Small steps every day.",
-    "Your feelings are valid.",
-    "Celebrate your wins, big or small.",
-    "Growth is a journey."
-  ];
 
   const fetchMonthlyMoods = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -69,7 +60,7 @@ export default function Dashboard() {
 
     const moodsMap: { [date: string]: string } = {};
     if (moods) {
-      moods.forEach((mood: any) => {
+      moods.forEach((mood: MoodRow) => {
         const dateStr = localDateKey(mood.created_at);
         moodsMap[dateStr] = mood.emoji;
       });
@@ -104,9 +95,9 @@ export default function Dashboard() {
       return;
     }
     // Build a set of unique dates with moods
-    const moodDates = new Set(moods.map((m: any) => localDateKey(m.created_at)));
+    const moodDates = new Set(moods.map((m: { created_at: string }) => localDateKey(m.created_at)));
     let streakCount = 0;
-    let current = new Date();
+    const current = new Date();
     while (true) {
       const dateStr = localDateKey(current);
       if (moodDates.has(dateStr)) {
@@ -138,7 +129,6 @@ export default function Dashboard() {
         firstName = profile.full_name.split(" ")[0];
       }
       setUser({ first_name: firstName, id: user.id });
-      setLoading(false);
     };
     checkAuth();
   }, [router]);
@@ -314,8 +304,11 @@ export default function Dashboard() {
   }));
 
   // In the chart, add a custom tooltip to show the mood label
-  const CustomTooltip = (props: TooltipProps<any, any>) => {
-    const { active, payload, label } = props as any;
+  const CustomTooltip = (props: TooltipProps<number, string>) => {
+    const { active, payload, label } = props as TooltipProps<number, string> & {
+      payload?: { payload: { label?: string } }[];
+      label?: string;
+    };
     if (active && payload && payload.length) {
       return (
         <div className="glass rounded-xl px-3 py-2 text-sm text-ink shadow-soft">
@@ -428,7 +421,7 @@ export default function Dashboard() {
                   <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${todayMood ? 'opacity-70' : 'text-muted'}`}>Today</p>
                   {todayInfo && TodayIcon ? (
                     <>
-                      <motion.div key={todayMood.emoji} initial={{ scale: 0.5, rotate: -12, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 16 }} className="mt-6 inline-block">
+                      <motion.div key={todayInfo.value} initial={{ scale: 0.5, rotate: -12, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 16 }} className="mt-6 inline-block">
                         <TodayIcon className="text-6xl" aria-hidden />
                       </motion.div>
                       <p className="mt-4 font-display text-3xl">{todayInfo.label}</p>
