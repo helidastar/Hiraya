@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+  : undefined;
+
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
@@ -7,10 +11,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: [
-      'xftjumejicbxbaoqfugj.supabase.co',
-      // add other domains if needed
-    ],
+    remotePatterns: supabaseHost ? [{ protocol: 'https', hostname: supabaseHost }] : [],
   },
 };
 
