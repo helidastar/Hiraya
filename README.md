@@ -78,6 +78,7 @@ Hiraya was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/Z
 
 | | |
 |---|---|
+| **School** | Cebu Institute of Technology - University |
 | **Course** | CPE340 Modern Systems Analysis and Design |
 | **Instructor** | Engr. Mervin John C. Tampus |
 | **Team** | ZAMDevs, 2025 |
