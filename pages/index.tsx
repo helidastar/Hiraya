@@ -286,14 +286,10 @@ function FeatureToggle({ nextSlide, prevSlide }: { nextSlide: () => void; prevSl
       </div>
       <ul className="text-[#6C63A6] text-lg mt-2 space-y-3 text-left list-none w-full max-w-xl mx-auto">
         <li>📝 <b>Easy Journaling:</b> Create, edit, and delete daily journal entries with ease</li>
-        <li>😊 <b>Mood Tagging:</b> Intuitive emoji or slider system for your feelings</li>
+        <li>😊 <b>Mood Tagging:</b> Tag each day and entry with an emoji mood</li>
         <li>📅 <b>Calendar View:</b> Interactive calendar for mood and entry history tracking</li>
         <li>🌗 <b>Minimalist UI:</b> Light and dark mode options for every mood</li>
-        <li>⏰ <b>Smart Reminders:</b> Encourages consistent journaling habits</li>
-        <li>📎 <b>Media Attachments:</b> Add photos, SocialLinks, and more to your entries</li>
-        <li>📡 <b>Offline Access:</b> Journal anywhere, anytime—no internet needed</li>
-        <li>⏳ <b>Time Capsule:</b> Schedule future resurfacing of special entries</li>
-        <li>🔗 <b>Cross-Platform Sync:</b> Seamless access on web, and desktop</li>
+        <li>✅ <b>Task Board:</b> Drag-and-drop to-do, in progress and done columns</li>
         <li>📊 <b>Mood Analytics:</b> Visualize your emotional patterns over time</li>
         <li>🌍 <b>Public Journaling:</b> Share select entries with the world to inspire and connect</li>
         <li>🔒 <b>Private Thoughts:</b> Keep entries just for you—safe, secure, and personal</li>
