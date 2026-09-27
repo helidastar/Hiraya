@@ -1,5 +1,8 @@
 import { useEffect, useState, useRef } from "react";
+import toast from "react-hot-toast";
+import { ensureProfile } from "../../lib/profile";
 import { supabase } from "../../lib/supabaseClient";
+import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import Modal from '../../components/Modal';
@@ -32,6 +35,7 @@ export default function Journal() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const router = useRouter();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -86,12 +90,21 @@ export default function Journal() {
   };
 
   const saveEntry = async () => {
-    if (newEntry.trim() === "") return;
+    if (newEntry.trim() === "" || saving) return;
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       router.push("/auth/login");
       return;
     }
+    setSaving(true);
+    try {
+      await persistEntry(session.user);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const persistEntry = async (user: User) => {
     if (editingEntry) {
       // Update existing entry
       const { data, error } = await supabase
@@ -107,27 +120,38 @@ export default function Journal() {
         })
         .eq("id", editingEntry.id)
         .select();
-      if (!error && data && data[0]) {
-        setEntries(entries.map(e => e.id === editingEntry.id ? data[0] : e));
-        resetForm();
+      if (error || !data?.[0]) {
+        toast.error(`Couldn't save your changes: ${error?.message ?? "the entry wasn't found"}`);
+        return;
       }
+      setEntries(entries.map(e => e.id === editingEntry.id ? data[0] : e));
+      resetForm();
+      toast.success("Changes saved");
     } else {
-      // Add new entry
+      // Entries belong to a profile; create it first if this account has none
+      const { error: profileError } = await ensureProfile(user);
+      if (profileError) {
+        toast.error(`Couldn't save your entry: ${profileError}`);
+        return;
+      }
       const { data, error } = await supabase
         .from("journal")
         .insert([{
           content: newEntry,
-          user_id: session.user.id,
+          user_id: user.id,
           public: isPublic,
           title: entryTitle,
           mood: selectedMood,
           created_at: timestampForDay(entryDate),
         }])
         .select();
-      if (!error && data) {
-        setEntries([data[0], ...entries].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-        resetForm();
+      if (error || !data?.[0]) {
+        toast.error(`Couldn't save your entry: ${error?.message ?? "no entry came back"}`);
+        return;
       }
+      setEntries([data[0], ...entries].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      resetForm();
+      toast.success("Entry saved");
     }
   };
 
@@ -212,8 +236,8 @@ export default function Journal() {
                 <span className="block text-xs text-muted">{isPublic ? 'Shown on the community feed' : 'Only you can see this entry'}</span>
               </span>
             </button>
-            <button type="submit" disabled={newEntry.trim() === ""} className="btn-primary">
-              {editingEntry ? 'Save changes' : 'Save entry'}
+            <button type="submit" disabled={newEntry.trim() === "" || saving} className="btn-primary">
+              {saving ? 'Saving...' : editingEntry ? 'Save changes' : 'Save entry'}
             </button>
           </div>
         </form>

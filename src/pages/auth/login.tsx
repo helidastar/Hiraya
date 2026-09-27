@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
+import { ensureProfile } from "../../lib/profile";
 import Head from "next/head";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -30,29 +31,9 @@ export default function Login() {
     if (error) {
       setError(error.message);
     } else {
-      // After successful login, ensure profile exists
+      // After a successful login, make sure the user has a profile row
       const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-      if (user) {
-        // Check if profile exists
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("id", user.id)
-          .single();
-        if (!profile && !profileError) {
-          // Insert new profile with id and email
-          await supabase.from("profiles").insert([
-            {
-              id: user.id,
-              email: user.email,
-              full_name: user.user_metadata?.first_name && user.user_metadata?.last_name
-                ? user.user_metadata.first_name + " " + user.user_metadata.last_name
-                : "",
-            },
-          ]);
-        }
-      }
+      if (userData?.user) await ensureProfile(userData.user);
       router.push("/dashboard");
     }
   }
