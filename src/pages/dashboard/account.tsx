@@ -1,12 +1,22 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { supabase } from "../../lib/supabaseClient";
-import Sidebar from "../../components/Sidebar";
-import Head from "next/head";
-import { useDarkMode } from "../../components/DarkModeContext";
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/router';
-import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import { AnimatePresence, motion } from "framer-motion";
+import toast from "react-hot-toast";
+import { FaCamera, FaPen } from "react-icons/fa";
+import Modal from "../../components/Modal";
+import PageShell from "../../components/PageShell";
+import { rise, ease } from "../../lib/motion";
+
+const SOCIALS = [
+  { key: 'facebook', label: 'Facebook', icon: '/pictures/facebook.png' },
+  { key: 'instagram', label: 'Instagram', icon: '/pictures/instagram.png' },
+  { key: 'twitter', label: 'X (Twitter)', icon: '/pictures/twitter.png' },
+  { key: 'github', label: 'GitHub', icon: '/pictures/github.png' },
+  { key: 'reflectly', label: 'Hiraya', icon: '/pictures/reflectly.png' },
+] as const;
 
 type JournalEntry = {
 id: string;
@@ -25,10 +35,8 @@ const [bio, setBio] = useState("Short bio goes here...");
 const [email, setEmail] = useState("");
 const [phone, setPhone] = useState("");
 const [userId, setUserId] = useState<string | null>(null);
-const [collapsed, setCollapsed] = useState(false);
 const [profileLoading, setProfileLoading] = useState(false);
 const [profileSuccess, setProfileSuccess] = useState(false);
-const { darkMode } = useDarkMode();
 const [editMode, setEditMode] = useState(false);
 const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
 const [newHeaderFile, setNewHeaderFile] = useState<File | null>(null);
@@ -44,25 +52,13 @@ const [socialLinks, setSocialLinks] = useState({
 // Add state for delete modal
 const [showDeleteModal, setShowDeleteModal] = useState(false);
 const router = useRouter();
-const [showNotification, setShowNotification] = useState(false);
-const [notificationType, setNotificationType] = useState<'success' | 'error' | null>(null);
-const [notificationMsg, setNotificationMsg] = useState('');
 
 
 
-// Show notification when profileSuccess or profileError changes
+// Confirm saves and report errors as toasts
 useEffect(() => {
-  if (profileSuccess) {
-    setNotificationType('success');
-    setNotificationMsg('Profile updated successfully!');
-    setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 2500);
-  } else if (profileError) {
-    setNotificationType('error');
-    setNotificationMsg(profileError);
-    setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 3500);
-  }
+  if (profileSuccess) toast.success('Profile saved');
+  else if (profileError) toast.error(profileError);
 }, [profileSuccess, profileError]);
 
 // Fetch user info and profile images
@@ -187,249 +183,145 @@ function handleCancelEdit() {
   setProfileError(null);
 }
 
+const headerSrc = newHeaderFile ? URL.createObjectURL(newHeaderFile) : header;
+const avatarSrc = newAvatarFile ? URL.createObjectURL(newAvatarFile) : avatar;
+const chipBtn = "inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur transition hover:bg-black/70";
+
 return (
-<div className={`relative min-h-screen w-full flex animate-gradient-bg overflow-hidden ${darkMode ? 'bg-[#1a1a2e]' : ''}`}>
-<Head>
-<title>Account | Muni</title>
-</Head>
-{/* Sidebar */}
-<Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-{/* Animated Clouds */}
-<div className="absolute left-0 top-24 w-1/2 z-10 animate-cloud-left pointer-events-none">
-<svg width="320" height="80" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-<ellipse cx="60" cy="60" rx="60" ry="20" fill="#D5CFE1" />
-<ellipse cx="140" cy="50" rx="50" ry="18" fill="#E1D8E9" />
-<ellipse cx="220" cy="65" rx="70" ry="22" fill="#B6A6CA" />
-</svg>
-</div>
-<div className="absolute right-0 top-40 w-1/3 z-10 animate-cloud-right pointer-events-none">
-<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-<ellipse cx="50" cy="40" rx="50" ry="15" fill="#E1D8E9" />
-<ellipse cx="120" cy="30" rx="40" ry="12" fill="#D5CFE1" />
-</svg>
-</div>
-{/* Main Content */}
-<main className={`flex min-h-screen w-full items-center justify-center ${darkMode ? 'bg-gradient-to-br from-[#1a1a2e] via-[#23234a] to-[#23234a]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#B6A6CA] to-[#B6A6CA]'} ${darkMode ? 'dark' : ''}`}>
-  <div className={`max-w-xl w-full rounded-3xl shadow-2xl p-12 flex flex-col items-center justify-center relative mx-auto transition-colors duration-300 ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-gradient-to-b from-orange-100 to-purple-200 text-gray-800'}`}>
-    {/* Header Banner */}
-    <div className="w-full h-56 rounded-t-3xl overflow-hidden relative flex items-center justify-center">
-      <Image
-        src={newHeaderFile ? URL.createObjectURL(newHeaderFile) : header}
-        alt="Header"
-        fill
-        style={{ objectFit: "cover" }}
-        className="rounded-t-3xl"
-        onError={(e) => (e.currentTarget.src = "/default-header.jpg")}
-      />
-      {editMode && (
-        <>
-          <label className="absolute top-3 right-4 flex items-center gap-2 cursor-pointer bg-white/80 hover:bg-white/90 px-4 py-2 rounded-full shadow transition-all">
-            <span className="font-medium text-[#6C63A6] text-xs">Change Header</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={e => setNewHeaderFile(e.target.files?.[0] || null)}
-            />
-          </label>
-          <button
-            type="button"
-            className="absolute top-3 left-4 bg-white/80 hover:bg-red-200 text-red-600 px-4 py-2 rounded-full shadow text-xs font-semibold transition-all"
-            onClick={() => {
-              setNewHeaderFile(null);
-              setHeader('/default-header.jpg');
-            }}
-          >
-            Remove Header
-          </button>
-        </>
-      )}
-    </div>
-    {/* Edit Profile Button */}
-    {!editMode && (
-      <button
-        onClick={() => setEditMode(true)}
-        className={`absolute top-6 right-6 px-5 py-2 rounded-full font-semibold shadow hover:bg-white text-base transition-colors duration-300 ${darkMode ? 'bg-[#23234a] text-[#A09ABC] hover:bg-[#23234a]/80' : 'bg-white/80 text-gray-700'}`}
-      >
-        Edit Profile
-      </button>
-    )}
-    {/* Avatar */}
-    <div className={`w-36 h-36 rounded-full shadow-lg flex items-center justify-center mb-8 -mt-16 overflow-hidden relative z-10 border-4 border-white ${darkMode ? 'bg-[#1a1a2e] border-[#23234a]' : 'bg-white border-white'}`}>
-      <Image
-        src={newAvatarFile ? URL.createObjectURL(newAvatarFile) : avatar}
-        alt="Avatar"
-        width={144}
-        height={144}
-        style={{ objectFit: "cover" }}
-        onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
-      />
-      {editMode && (
-        <>
-          <label className={`absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 cursor-pointer px-3 py-2 rounded-full shadow transition-all border border-[#A09ABC]/30 ${darkMode ? 'bg-[#23234a] text-[#A09ABC] hover:bg-[#23234a]/80' : 'bg-white/90 text-[#6C63A6] hover:bg-white'}`}>
-            <span className="font-medium text-xs">Change</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={e => setNewAvatarFile(e.target.files?.[0] || null)}
-            />
-          </label>
-          <button
-            type="button"
-            className={`absolute top-2 right-2 px-3 py-1 rounded-full shadow text-xs font-semibold transition-all z-20 ${darkMode ? 'bg-[#23234a] text-red-400 hover:bg-red-900' : 'bg-white/80 text-red-600 hover:bg-red-200'}`}
-            onClick={() => {
-              setNewAvatarFile(null);
-              setAvatar('/default-avatar.png');
-            }}
-          >
-            Remove
-          </button>
-        </>
-      )}
-    </div>
-    {/* Name, Email, Phone */}
-    {editMode ? (
-      <>
-        <input
-          value={name}
-          onChange={e => setName(e.target.value)}
-          className={`text-3xl font-bold mb-3 text-center w-full rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'text-gray-800'}`}
-        />
-        <input
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          className={`text-lg text-center mb-2 w-full rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'text-gray-600'}`}
-        />
-        <input
-          value={phone}
-          onChange={e => setPhone(e.target.value)}
-          className={`text-base text-center mb-5 w-full rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'text-gray-500'}`}
-        />
-      </>
-    ) : (
-      <>
-        <div className="text-3xl font-bold mb-3 text-center">{name}</div>
-        <div className="text-lg text-center mb-2">{email}</div>
-        <div className="text-base text-center mb-5">{phone}</div>
-      </>
-    )}
-    {/* Bio/Quote */}
-    {editMode ? (
-      <textarea
-        value={bio}
-        onChange={e => setBio(e.target.value)}
-        className={`rounded-xl px-5 py-3 text-center italic text-base mb-8 w-full max-w-xs mx-auto shadow focus:outline-none border border-[#A09ABC]/30 ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-orange-100/80 text-gray-700'}`}
-        rows={2}
-      />
-    ) : (
-      <div className={`rounded-xl px-5 py-3 text-center italic text-base mb-8 w-full max-w-xs mx-auto shadow ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-orange-100/80 text-gray-700'}`}>{bio}</div>
-    )}
-    {/* Social Links */}
-    <div className="w-full flex flex-col items-center mb-8">
-      <div className={`text-lg font-bold mb-4 ${darkMode ? 'text-[#A09ABC]' : 'text-gray-700'}`}>Social Links</div>
-      {editMode ? (
-        <div className="flex flex-col gap-3 w-full max-w-xs mx-auto mb-4">
-          <input type="text" placeholder="Facebook URL" value={socialLinks.facebook} onChange={e => setSocialLinks({ ...socialLinks, facebook: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
-          <input type="text" placeholder="Instagram URL" value={socialLinks.instagram} onChange={e => setSocialLinks({ ...socialLinks, instagram: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
-          <input type="text" placeholder="Twitter URL" value={socialLinks.twitter} onChange={e => setSocialLinks({ ...socialLinks, twitter: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
-          <input type="text" placeholder="GitHub URL" value={socialLinks.github} onChange={e => setSocialLinks({ ...socialLinks, github: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
-          <input type="text" placeholder="Muni URL" value={socialLinks.reflectly} onChange={e => setSocialLinks({ ...socialLinks, reflectly: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
-        </div>
-      ) : null}
-      <div className="flex flex-row gap-6 justify-center">
-        <a href={socialLinks.facebook || '#'} title="Facebook" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.facebook ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/facebook.png" alt="Facebook" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
-        <a href={socialLinks.instagram || '#'} title="Instagram" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.instagram ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/instagram.png" alt="Instagram" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
-        <a href={socialLinks.reflectly || '#'} title="Muni" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.reflectly ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/reflectly.png" alt="Muni" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
-        <a href={socialLinks.github || '#'} title="GitHub" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.github ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/github.png" alt="GitHub" className="w-9 h-9 rounded-full shadow-md object-cover bg-white p-1" /> </a>
-        <a href={socialLinks.twitter || '#'} title="Twitter" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.twitter ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/twitter.png" alt="Twitter" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
-      </div>
-    </div>
-    {/* Save/Cancel Buttons in Edit Mode */}
-    {editMode && (
-      <div className="flex flex-col gap-4 mt-4">
-        {/* Error/Success Messages */}
-        {profileError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-center text-sm">
-            {profileError}
+  <PageShell
+    title="Account"
+    width="max-w-3xl"
+    actions={!editMode && <button onClick={() => setEditMode(true)} className="btn-ghost"><FaPen aria-hidden className="text-xs" /> Edit profile</button>}
+  >
+    <motion.section variants={rise} className="card overflow-hidden">
+      <div className="relative h-44 bg-[linear-gradient(135deg,rgb(var(--iris)),rgb(var(--blush)))] sm:h-56">
+        <Image src={headerSrc} alt="" fill style={{ objectFit: "cover" }} onError={(e) => (e.currentTarget.src = "/default-header.jpg")} />
+        {editMode && (
+          <div className="absolute right-3 top-3 flex gap-2">
+            <label className={`${chipBtn} cursor-pointer`}>
+              <FaCamera aria-hidden /> Change cover
+              <input type="file" accept="image/*" className="sr-only" onChange={e => setNewHeaderFile(e.target.files?.[0] || null)} />
+            </label>
+            <button type="button" className={chipBtn} onClick={() => { setNewHeaderFile(null); setHeader('/default-header.jpg'); }}>Remove</button>
           </div>
         )}
-        {profileSuccess && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded text-center text-sm">
-            Profile updated successfully!
-          </div>
-        )}
-        <div className="flex gap-4">
-          <button
-            onClick={handleCancelEdit}
-            className={`px-6 py-2 rounded-full font-bold shadow transition-all duration-300 ${darkMode ? 'bg-[#23234a] text-[#A09ABC] hover:bg-[#23234a]/80' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleProfileSave}
-            disabled={profileLoading}
-            className={`px-6 py-2 rounded-full font-bold shadow transition-all duration-300 ${darkMode ? 'bg-gradient-to-r from-[#A09ABC] to-[#6C63A6] text-white hover:from-[#6C63A6] hover:to-[#A09ABC]' : 'bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white hover:from-[#B6A6CA] hover:to-[#A09ABC]'}`}
-          >
-            {profileLoading ? 'Saving...' : 'Save'}
-          </button>
-        </div>
       </div>
-    )}
-    {/* Delete Account Section */}
-    <div className="w-full flex flex-col items-center border-t border-gray-300 pt-6 mt-2">
-      <button
-        onClick={() => setShowDeleteModal(true)}
-        className={`px-7 py-3 rounded-full font-bold shadow transition text-base mb-2 ${darkMode ? 'bg-gradient-to-r from-red-700 to-red-900 text-white hover:from-red-900 hover:to-red-700' : 'bg-gradient-to-r from-red-400 to-red-600 text-white hover:from-red-600 hover:to-red-400'}`}
-      >
-        Delete My Account
+
+      <div className="px-6 pb-8 sm:px-8">
+        <div className="-mt-14 flex items-end gap-4">
+          <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-surface bg-paper shadow-glow ring-2 ring-iris/60 ring-offset-2 ring-offset-surface">
+            <Image src={avatarSrc} alt="" width={112} height={112} className="h-full w-full object-cover" onError={(e) => (e.currentTarget.src = "/default-avatar.png")} />
+            {editMode && (
+              <label className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40 text-white opacity-0 transition hover:opacity-100 focus-within:opacity-100">
+                <FaCamera aria-hidden />
+                <span className="sr-only">Change profile photo</span>
+                <input type="file" accept="image/*" className="sr-only" onChange={e => setNewAvatarFile(e.target.files?.[0] || null)} />
+              </label>
+            )}
+          </div>
+          {editMode && (
+            <button type="button" className="mb-2 text-sm font-semibold text-muted hover:text-red-600" onClick={() => { setNewAvatarFile(null); setAvatar('/default-avatar.png'); }}>
+              Remove photo
+            </button>
+          )}
+        </div>
+
+        <AnimatePresence mode="wait" initial={false}>
+          {editMode ? (
+            <motion.form
+              key="edit"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25, ease }}
+              className="mt-6 space-y-5"
+              onSubmit={(e) => { e.preventDefault(); handleProfileSave(); }}
+            >
+              <div>
+                <label htmlFor="acc-name" className="label">Name</label>
+                <input id="acc-name" value={name} onChange={e => setName(e.target.value)} className="field" />
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="acc-email" className="label">Email shown on your profile</label>
+                  <input id="acc-email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="field" />
+                </div>
+                <div>
+                  <label htmlFor="acc-phone" className="label">Phone</label>
+                  <input id="acc-phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="field" />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="acc-bio" className="label">Bio</label>
+                <textarea id="acc-bio" value={bio} onChange={e => setBio(e.target.value)} rows={3} className="field resize-y" />
+              </div>
+              <fieldset>
+                <legend className="label">Links</legend>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {SOCIALS.map(({ key, label, icon }) => (
+                    <div key={key} className="relative">
+                      <img src={icon} alt="" className="pointer-events-none absolute left-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full object-cover" />
+                      <label htmlFor={`acc-${key}`} className="sr-only">{label} link</label>
+                      <input
+                        id={`acc-${key}`}
+                        type="url"
+                        placeholder={`${label} link`}
+                        value={socialLinks[key]}
+                        onChange={e => setSocialLinks({ ...socialLinks, [key]: e.target.value })}
+                        className="field pl-12"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </fieldset>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={handleCancelEdit} className="btn-ghost">Cancel</button>
+                <button type="submit" disabled={profileLoading} className="btn-primary">{profileLoading ? 'Saving...' : 'Save profile'}</button>
+              </div>
+            </motion.form>
+          ) : (
+            <motion.div
+              key="view"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25, ease }}
+              className="mt-5"
+            >
+              <h2 className="font-display text-3xl">{name}</h2>
+              <p className="mt-1 text-muted">{[email, phone].filter(Boolean).join(' · ')}</p>
+              {bio && <p className="mt-5 max-w-xl whitespace-pre-wrap leading-relaxed">{bio}</p>}
+              <div className="mt-6 flex flex-wrap gap-2">
+                {SOCIALS.filter(({ key }) => socialLinks[key]).map(({ key, label, icon }) => (
+                  <a key={key} href={socialLinks[key]} target="_blank" rel="noopener noreferrer" className="btn-ghost py-2 pl-2 pr-4 text-sm">
+                    <img src={icon} alt="" className="h-6 w-6 rounded-full object-cover" /> {label}
+                  </a>
+                ))}
+                {SOCIALS.every(({ key }) => !socialLinks[key]) && (
+                  <button onClick={() => setEditMode(true)} className="text-sm font-semibold text-iris hover:underline">Add links to your profile</button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.section>
+
+    <motion.section variants={rise} className="mt-6 rounded-3xl border border-red-200 p-6 dark:border-red-900/60 sm:p-8">
+      <h2 className="font-semibold">Delete account</h2>
+      <p className="mt-1 text-sm text-muted">Permanently removes your account, journal entries, moods, tasks, comments and likes.</p>
+      <button onClick={() => setShowDeleteModal(true)} className="mt-4 rounded-full border border-red-300 px-5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-600 hover:text-white dark:border-red-800 dark:text-red-400">
+        Delete my account
       </button>
-    </div>
-    {/* Delete Account Modal */}
-    {showDeleteModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-        <div className={`rounded-2xl shadow-2xl p-8 max-w-xs w-full flex flex-col items-center relative ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-white'}` }>
-          <button
-            className={`absolute top-3 right-4 text-2xl focus:outline-none ${darkMode ? 'text-[#A09ABC] hover:text-[#6C63A6]' : 'text-[#A09ABC] hover:text-[#6C63A6]'}`}
-            onClick={() => setShowDeleteModal(false)}
-            aria-label="Close"
-          >
-            &times;
-          </button>
-          <div className="text-xl font-bold mb-2">Confirm Delete</div>
-          <div className="mb-6 text-center">Are you sure you want to delete your account?<br/>This action cannot be undone.</div>
-          <div className="flex gap-4 w-full justify-center">
-            <button
-              onClick={() => setShowDeleteModal(false)}
-              className={`px-6 py-2 rounded-lg font-bold shadow w-1/2 ${darkMode ? 'bg-[#23234a] text-[#A09ABC] hover:bg-[#23234a]/80' : 'bg-gray-200 text-[#6C63A6] hover:bg-gray-300'}`}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => { setShowDeleteModal(false); handleDeleteAccount(); }}
-              className={`px-6 py-2 rounded-lg font-bold shadow w-1/2 ${darkMode ? 'bg-gradient-to-r from-red-700 to-red-900 text-white hover:from-red-900 hover:to-red-700' : 'bg-gradient-to-r from-red-400 to-red-600 text-white hover:from-red-600 hover:to-red-400'}`}
-            >
-              Delete
-            </button>
-          </div>
-        </div>
+    </motion.section>
+
+    <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Delete your account?" style={{ maxWidth: 440 }}>
+      <p className="text-muted">Everything you&apos;ve written in Hiraya is deleted for good. This can&apos;t be undone.</p>
+      <div className="mt-7 flex justify-end gap-2">
+        <button onClick={() => setShowDeleteModal(false)} className="btn-ghost">Cancel</button>
+        <button onClick={() => { setShowDeleteModal(false); handleDeleteAccount(); }} className="btn-primary !bg-red-600 !text-white">Delete account</button>
       </div>
-    )}
-  </div>
-  {/* Aesthetic Notification */}
-  {showNotification && (
-    <div className={`fixed top-6 left-1/2 z-50 -translate-x-1/2 px-6 py-4 min-w-[280px] max-w-xs flex items-center gap-3 rounded-xl shadow-lg transition-all duration-500
-      ${notificationType === 'success' ? 'bg-green-50 border border-green-300 text-green-800' : 'bg-red-50 border border-red-300 text-red-800'}
-      animate-fade-in-out`}
-      style={{animation: 'fadeInOut 2.5s'}}
-    >
-      <span className="text-2xl">
-        {notificationType === 'success' ? <FaCheckCircle /> : <FaExclamationTriangle />}
-      </span>
-      <span className="font-medium text-sm break-words">{notificationMsg}</span>
-    </div>
-  )}
-</main>
-</div>
+    </Modal>
+  </PageShell>
 );
 }

@@ -1,53 +1,26 @@
-// /pages/dashboard/analytics.tsx
-
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import Sidebar from "../../components/Sidebar";
-import Head from "next/head";
 import { useRouter } from "next/router";
+import { motion } from "framer-motion";
+import { getMood, moodLabel, moodScore, moodTone } from "../../components/moods";
 import { useDarkMode } from "../../components/DarkModeContext";
-import { FaCalendarDay, FaChartLine, FaCalendarAlt, FaStar } from "react-icons/fa";
-import { getMood, moodLabel, moodScore } from "../../components/moods";
+import PageShell from "../../components/PageShell";
 import { localDateKey } from "../../lib/dates";
-import {
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  Area,
-  AreaChart,
-} from "recharts";
+import { rise, ease } from "../../lib/motion";
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+
+type MoodDay = { date: string; emoji: string };
+
+const WEEKS = 12;
+const SCORE_TONE: Record<number, string> = { 1: "bg-mood-1", 2: "bg-mood-2", 3: "bg-mood-3", 4: "bg-mood-4", 5: "bg-mood-5" };
+const SCORE_LABEL: Record<number, string> = { 1: "Very low", 2: "Low", 3: "In between", 4: "Good", 5: "Great" };
 
 export default function Analytics() {
-  const [moodData, setMoodData] = useState<{ date: string; moods: number }[]>([]);
-  const [journalData, setJournalData] = useState<{ date: string; entries: number }[]>([]);
+  const [moodDetails, setMoodDetails] = useState<MoodDay[]>([]);
+  const [journalDays, setJournalDays] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [collapsed, setCollapsed] = useState(true);
   const router = useRouter();
   const { darkMode } = useDarkMode();
-
-
-  // Generate random stars for dark mode decoration
-  const generateStars = () => {
-    const stars = [];
-    for (let i = 0; i < 18; i++) {
-      stars.push({
-        id: i,
-        top: Math.random() * 90 + 2, // avoid edges
-        left: Math.random() * 90 + 2,
-        size: Math.random() * 10 + 8, // 8-18px
-        opacity: Math.random() * 0.4 + 0.6,
-        blur: Math.random() > 0.5 ? 8 : 0,
-        animationDelay: Math.random() * 3
-      });
-    }
-    return stars;
-  };
-  const [stars] = useState(generateStars());
-
-  // After fetching moods, fetch mood details for reports
-  const [moodDetails, setMoodDetails] = useState<{ date: string; emoji: string }[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -56,54 +29,23 @@ export default function Analytics() {
         router.push("/auth/login");
         return;
       }
-      // Fetch moods (with emoji)
       const { data: moods } = await supabase
         .from("moods")
         .select("created_at, emoji")
         .eq("user_id", session.user.id);
       setMoodDetails((moods || []).map(m => ({ date: localDateKey(m.created_at), emoji: m.emoji })));
-      // Fetch moods
-      const { data: moodsGrouped } = await supabase
-        .from("moods")
-        .select("created_at")
-        .eq("user_id", session.user.id);
-      const moodChart = Object.entries(moodsGrouped?.reduce((acc, entry) => {
-        const date = new Date(entry.created_at).toLocaleDateString();
-        acc[date] = (acc[date] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {}).map(([date, moods]) => ({ date, moods }));
-      setMoodData(moodChart);
-      // Fetch journal entries
       const { data: journals } = await supabase
         .from("journal")
         .select("created_at")
         .eq("user_id", session.user.id);
-      const journalGrouped = journals?.reduce((acc, entry) => {
-        const date = new Date(entry.created_at).toLocaleDateString();
-        acc[date] = (acc[date] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      const journalChart = Object.entries(journalGrouped || {}).map(([date, entries]) => ({ date, entries }));
-      setJournalData(journalChart);
+      setJournalDays((journals || []).map(j => localDateKey(j.created_at)));
       setLoading(false);
     }
     fetchData();
   }, [router]);
 
-  // Merge data by date for combined chart
-  const allDates = Array.from(new Set([
-    ...moodData.map(d => d.date),
-    ...journalData.map(d => d.date)
-  ])).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-  const combinedData = allDates.map(date => ({
-    date,
-    moods: moodData.find(d => d.date === date)?.moods || 0,
-    entries: journalData.find(d => d.date === date)?.entries || 0
-  }));
-
-  // Helper to get mood stats for a date range
-  function getMoodStatsForRange(moods: { date: string; emoji: string }[], start: Date, end: Date) {
-    // compare yyyy-mm-dd keys so whole local days are included
+  // Mood stats for a range of whole local days
+  function getMoodStatsForRange(moods: MoodDay[], start: Date, end: Date) {
     const from = localDateKey(start);
     const to = localDateKey(end);
     const filtered = moods.filter(m => m.date >= from && m.date <= to);
@@ -113,232 +55,177 @@ export default function Analytics() {
     const freq: Record<string, number> = {};
     filtered.forEach(m => { const key = getMood(m.emoji)?.value ?? m.emoji; freq[key] = (freq[key] || 0) + 1; });
     const mostCommon = Object.keys(freq).reduce((a, b) => freq[a] > freq[b] ? a : b);
-    return {
-      avg,
-      mostCommon,
-      count: filtered.length
-    };
+    return { avg, mostCommon, count: filtered.length };
   }
 
-  if (loading) {
-    return (
-      <div className={`flex min-h-screen items-center justify-center ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`}>
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#A09ABC]"></div>
-      </div>
-    );
+  const today = new Date();
+  const weekAgo = new Date(); weekAgo.setDate(today.getDate() - 6);
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const ranges = [
+    { label: "Today", stats: getMoodStatsForRange(moodDetails, today, today) },
+    { label: "Last 7 days", stats: getMoodStatsForRange(moodDetails, weekAgo, today) },
+    { label: "This month", stats: getMoodStatsForRange(moodDetails, startOfMonth, today) },
+    { label: "All time", stats: getMoodStatsForRange(moodDetails, new Date('2000-01-01'), today) },
+  ];
+  const overall = ranges[3].stats;
+
+  // Last 12 weeks as a grid: one column per week, Sunday at the top
+  const moodByDay = new Map(moodDetails.map(m => [m.date, m.emoji]));
+  const gridStart = new Date(today);
+  gridStart.setDate(today.getDate() - today.getDay() - (WEEKS - 1) * 7);
+  const weeks: { key: string; emoji?: string; future: boolean; label: string }[][] = [];
+  for (let w = 0; w < WEEKS; w++) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(gridStart);
+      day.setDate(gridStart.getDate() + w * 7 + d);
+      const key = localDateKey(day);
+      week.push({
+        key,
+        emoji: moodByDay.get(key),
+        future: day > today,
+        label: day.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }),
+      });
+    }
+    weeks.push(week);
+  }
+
+  // How many logged moods fall on each score
+  const mix = [1, 2, 3, 4, 5].map(score => ({ score, count: moodDetails.filter(m => moodScore(m.emoji) === score).length }));
+  const mixTotal = mix.reduce((a, b) => a + b.count, 0);
+
+  // Moods and journal entries per day over the last 30 days
+  const activity = Array.from({ length: 30 }, (_, i) => {
+    const day = new Date(today);
+    day.setDate(today.getDate() - 29 + i);
+    const key = localDateKey(day);
+    return {
+      date: key,
+      Entries: journalDays.filter(d => d === key).length,
+      Moods: moodByDay.has(key) ? 1 : 0,
+    };
+  });
+  const hasActivity = activity.some(a => a.Entries > 0 || a.Moods > 0);
+  const chartIris = darkMode ? '#BEA8FF' : '#7A5AE4';
+  const chartMood = darkMode ? '#E28CC8' : '#F2A8D4';
+  const axisColor = darkMode ? '#B2A8D8' : '#6C6194';
+
+  let message = '';
+  if (overall) {
+    if (overall.avg >= 4) message = "You've been doing well. Keep up whatever is working.";
+    else if (overall.avg >= 3) message = "Your mood is balanced. Keep making time for yourself.";
+    else message = "It's been a heavy stretch. Be gentle with yourself, and reach out if you need support.";
   }
 
   return (
-    <>
-      <Head>
-        <title>Analytics Dashboard - Muni</title>
-        <meta name="description" content="Mood and Journal Analytics" />
-      </Head>
-      <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`} style={{ position: 'relative' }}>
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        {/* Scattered starfield for dark mode */}
-        {darkMode && stars.map(star => (
-          <div
-            key={star.id}
-            className="star-glow"
-            style={{
-              position: 'absolute',
-              top: `${star.top}%`,
-              left: `${star.left}%`,
-              width: `${star.size}px`,
-              height: `${star.size}px`,
-              opacity: star.opacity,
-              filter: `drop-shadow(0 0 ${star.blur}px #fffbe9) drop-shadow(0 0 24px #A09ABC)` + (star.blur ? ' blur(1px)' : ''),
-              zIndex: 0,
-              animation: `starTwinkle ${3 + star.animationDelay}s infinite alternate ease-in-out`,
-              pointerEvents: 'none',
-            }}
-          >
-            {starSVG('#fff', '#A09ABC')}
-          </div>
+    <PageShell title="Analytics" eyebrow="Your moods over time" loading={loading}>
+      <motion.div variants={rise} className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {ranges.map(({ label, stats }) => (
+          <section key={label} className="card card-lift relative flex flex-col overflow-hidden p-5">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br from-iris/25 to-blush/25 blur-2xl" />
+            <h2 className="eyebrow">{label}</h2>
+            {stats ? (
+              <>
+                <p className="relative mt-3 font-display text-4xl">{stats.avg.toFixed(1)}<span className="ml-1 font-sans text-base text-muted">/ 5</span></p>
+                <p className="mt-3 flex items-center gap-2 text-sm">
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${moodTone(stats.mostCommon)}`}>{moodLabel(stats.mostCommon)}</span>
+                  <span className="text-muted">most often</span>
+                </p>
+                <p className="mt-auto pt-3 text-sm text-muted">{stats.count} {stats.count === 1 ? 'mood' : 'moods'} logged</p>
+              </>
+            ) : (
+              <p className="mt-3 text-muted">No moods logged yet.</p>
+            )}
+          </section>
         ))}
-        <main className={`flex-1 p-4 md:p-10 min-h-screen transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`}>
-          <div className="w-full flex justify-center">
-            <div className="w-full max-w-6xl">
-              <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>Analytics Dashboard</h2>
-              {/* Main Chart Card */}
-              <div className={`bg-white/60 dark:bg-[#23234a] rounded-3xl shadow-lg border border-white/30 dark:border-[#23234a] p-8 mb-10`}>
-                <h3 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>Mood Trends & Journal Analytics</h3>
-                {combinedData.length === 0 ? (
-                  <div className={`text-center py-8 ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>No data yet. Start tracking your moods and journals.</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={320}>
-                    <AreaChart data={combinedData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                      <defs>
-                        <linearGradient id="lightPurple" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#B6A6CA" stopOpacity={0.7} />
-                          <stop offset="100%" stopColor="#E1D8E9" stopOpacity={0.2} />
-                        </linearGradient>
-                        <linearGradient id="darkPurple" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#6C3483" stopOpacity={0.8} />
-                          <stop offset="100%" stopColor="#23234a" stopOpacity={0.2} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="date" stroke="#A09ABC" tick={{ fontSize: 14 }} />
-                      <YAxis stroke="#A09ABC" allowDecimals={false} tick={{ fontSize: 14 }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'rgba(255,255,255,0.95)',
-                          border: '1px solid #B6A6CA',
-                          borderRadius: '8px',
-                          color: '#6C63A6',
-                          fontWeight: 600
-                        }}
-                        formatter={(value) => (typeof value === 'number' ? Math.round(value) : value)}
-                      />
-                      <Legend verticalAlign="top" height={36} iconType="circle" />
-                      <Area
-                        type="monotone"
-                        dataKey="moods"
-                        stroke="#B6A6CA"
-                        fill="url(#lightPurple)"
-                        strokeWidth={3}
-                        dot={{ r: 4, fill: '#B6A6CA' }}
-                        activeDot={{ r: 7, fill: '#B6A6CA' }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="entries"
-                        stroke="#6C3483"
-                        fill="url(#darkPurple)"
-                        strokeWidth={3}
-                        dot={{ r: 4, fill: '#6C3483' }}
-                        activeDot={{ r: 7, fill: '#6C3483' }}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-              <div className={`mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4`}>
-                {/* Today */}
-                {(() => {
-                  const today = new Date();
-                  const daily = getMoodStatsForRange(moodDetails, today, today);
-                  return (
-                    <div className="p-5 rounded-xl bg-[#F3F0F9] shadow flex flex-col h-full border-2 border-[#A09ABC]/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaCalendarDay className="text-xl text-[#A09ABC]" aria-hidden />
-                        <span className="font-bold text-lg text-[#A09ABC]">Today</span>
-                      </div>
-                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{daily ? daily.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{daily ? '(' + moodLabel(daily.mostCommon) + ')' : ''}</span></div>
-                      <div className="mb-1 text-[#6C63A6]">Avg Mood</div>
-                      <div className="text-lg font-semibold">{daily ? moodLabel(daily.mostCommon) : 'N/A'}</div>
-                      <div className="mb-1 text-[#6C63A6]">Most Common Mood</div>
-                      <div className="text-lg font-semibold">{daily ? daily.count : 0}</div>
-                      <div className="text-[#6C63A6]">Entries</div>
-                    </div>
-                  );
-                })()}
-                {/* This Week */}
-                {(() => {
-                  const today = new Date();
-                  const weekAgo = new Date();
-                  weekAgo.setDate(today.getDate() - 6);
-                  const weekly = getMoodStatsForRange(moodDetails, weekAgo, today);
-                  return (
-                    <div className="p-5 rounded-xl bg-[#F3F0F9] shadow flex flex-col h-full border-2 border-[#A09ABC]/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaChartLine className="text-xl text-[#A09ABC]" aria-hidden />
-                        <span className="font-bold text-lg text-[#A09ABC]">This Week</span>
-                      </div>
-                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{weekly ? weekly.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{weekly ? '(' + moodLabel(weekly.mostCommon) + ')' : ''}</span></div>
-                      <div className="mb-1 text-[#6C63A6]">Avg Mood</div>
-                      <div className="text-lg font-semibold">{weekly ? moodLabel(weekly.mostCommon) : 'N/A'}</div>
-                      <div className="mb-1 text-[#6C63A6]">Most Common Mood</div>
-                      <div className="text-lg font-semibold">{weekly ? weekly.count : 0}</div>
-                      <div className="text-[#6C63A6]">Entries</div>
-                    </div>
-                  );
-                })()}
-                {/* This Month */}
-                {(() => {
-                  const today = new Date();
-                  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                  const monthly = getMoodStatsForRange(moodDetails, startOfMonth, today);
-                  return (
-                    <div className="p-5 rounded-xl bg-[#F3F0F9] shadow flex flex-col h-full border-2 border-[#A09ABC]/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaCalendarAlt className="text-xl text-[#A09ABC]" aria-hidden />
-                        <span className="font-bold text-lg text-[#A09ABC]">This Month</span>
-                      </div>
-                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{monthly ? monthly.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{monthly ? '(' + moodLabel(monthly.mostCommon) + ')' : ''}</span></div>
-                      <div className="mb-1 text-[#6C63A6]">Avg Mood</div>
-                      <div className="text-lg font-semibold">{monthly ? moodLabel(monthly.mostCommon) : 'N/A'}</div>
-                      <div className="mb-1 text-[#6C63A6]">Most Common Mood</div>
-                      <div className="text-lg font-semibold">{monthly ? monthly.count : 0}</div>
-                      <div className="text-[#6C63A6]">Entries</div>
-                    </div>
-                  );
-                })()}
-                {/* Overall */}
-                {(() => {
-                  const overall = getMoodStatsForRange(moodDetails, new Date('2000-01-01'), new Date());
-                  let message = '';
-                  if (overall) {
-                    if (overall.avg >= 4) message = "You're doing great! Keep up the positive energy.";
-                    else if (overall.avg >= 3) message = "Your mood is balanced. Remember to take care of yourself.";
-                    else message = "It's okay to have tough days. Take care and reach out if you need support.";
-                  }
-                  return (
-                    <div className="p-5 rounded-xl bg-[#E1D8E9] shadow flex flex-col h-full border-2 border-[#A09ABC]">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaStar className="text-xl text-[#A09ABC]" aria-hidden />
-                        <span className="font-bold text-lg text-[#A09ABC]">Overall</span>
-                      </div>
-                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{overall ? overall.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{overall ? '(' + moodLabel(overall.mostCommon) + ')' : ''}</span></div>
-                      <div className="mb-1 text-[#6C63A6]">Avg Mood</div>
-                      <div className="text-lg font-semibold">{overall ? moodLabel(overall.mostCommon) : 'N/A'}</div>
-                      <div className="mb-1 text-[#6C63A6]">Most Common Mood</div>
-                      <div className="text-lg font-semibold">{overall ? overall.count : 0}</div>
-                      <div className="text-[#6C63A6]">Entries</div>
-                      <div className="mt-3 text-[#A09ABC] text-base font-bold">{message}</div>
-                    </div>
-                  );
-                })()}
-              </div>
+      </motion.div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+        <motion.section variants={rise} className="card p-6 sm:p-7">
+          <div className="mb-5 flex items-baseline justify-between gap-4">
+            <h2 className="font-display text-2xl">Last {WEEKS} weeks</h2>
+            <span className="text-sm text-muted">Each square is a day</span>
+          </div>
+          <div className="flex gap-3">
+            <div className="grid grid-rows-7 gap-1 pt-0.5 text-[10px] font-semibold text-muted sm:gap-1.5">
+              {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <span key={i} className="flex h-full items-center">{d}</span>)}
+            </div>
+            <div className="grid flex-1 grid-flow-col grid-cols-12 grid-rows-7 gap-1 sm:gap-1.5">
+              {weeks.flatMap((week, w) => week.map((day, d) => (
+                <motion.div
+                  key={day.key}
+                  title={day.future ? undefined : `${day.label}: ${day.emoji ? moodLabel(day.emoji) : 'no mood'}`}
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 + w * 0.04 + d * 0.01, duration: 0.3, ease }}
+                  className={`aspect-square rounded-[5px] ${day.future ? 'opacity-0' : day.emoji ? moodTone(day.emoji).split(' ')[0] : 'bg-line/60'}`}
+                />
+              )))}
             </div>
           </div>
-        </main>
-      </div>
-      <style jsx global>{`
-        .star-glow {
-          filter: drop-shadow(0 0 24px #fffbe9) drop-shadow(0 0 48px #A09ABC);
-          opacity: 0.85;
-          animation: starTwinkle 5s infinite alternate ease-in-out;
-        }
-        @keyframes starTwinkle {
-          0% { transform: translateY(0) scale(1); opacity: 0.85; }
-          50% { transform: translateY(-12px) scale(1.05); opacity: 1; }
-          100% { transform: translateY(0) scale(1); opacity: 0.85; }
-        }
-      `}</style>
-    </>
-  );
-}
+        </motion.section>
 
-function starSVG(color1: string, color2: string) {
-  return (
-    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 0 16px #fffbe9) blur(0.5px)' }}>
-      <defs>
-        <radialGradient id="starGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-          <stop offset="0%" stopColor={color1} stopOpacity="1" />
-          <stop offset="100%" stopColor={color2} stopOpacity="0.7" />
-        </radialGradient>
-      </defs>
-      {/* 5-pointed star */}
-      <path 
-        d="M50 10 L61 35 L88 35 L68 55 L78 82 L50 65 L22 82 L32 55 L12 35 L39 35 Z" 
-        fill="url(#starGradient)" 
-        stroke={color2} 
-        strokeWidth="2"
-      />
-      {/* Inner glow */}
-      <circle cx="50" cy="50" r="15" fill={color1} opacity="0.3" />
-    </svg>
+        <motion.section variants={rise} className="card flex flex-col p-6 sm:p-7">
+          <h2 className="font-display text-2xl">Mood mix</h2>
+          <p className="mt-1 text-sm text-muted">All the moods you&apos;ve logged, from low to high</p>
+          {mixTotal === 0 ? (
+            <p className="mt-6 flex flex-1 items-center justify-center rounded-2xl border border-dashed border-line px-6 py-10 text-center text-muted">Log a few moods to see your mix.</p>
+          ) : (
+            <>
+              <div className="mt-6 flex h-4 overflow-hidden rounded-full bg-line/60">
+                {mix.filter(m => m.count > 0).map(m => (
+                  <motion.div
+                    key={m.score}
+                    className={SCORE_TONE[m.score]}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(m.count / mixTotal) * 100}%` }}
+                    transition={{ delay: 0.5, duration: 0.8, ease }}
+                  />
+                ))}
+              </div>
+              <ul className="mt-5 space-y-2.5 text-sm">
+                {[...mix].reverse().map(m => (
+                  <li key={m.score} className="flex items-center gap-3">
+                    <span className={`h-3 w-3 rounded-full ${SCORE_TONE[m.score]}`} aria-hidden />
+                    <span className="flex-1">{SCORE_LABEL[m.score]}</span>
+                    <span className="font-semibold tabular-nums">{m.count}</span>
+                    <span className="w-10 text-right tabular-nums text-muted">{Math.round((m.count / mixTotal) * 100)}%</span>
+                  </li>
+                ))}
+              </ul>
+              {message && <p className="mt-6 rounded-2xl bg-gradient-to-br from-iris-soft to-blush/20 p-4 text-sm leading-relaxed">{message}</p>}
+            </>
+          )}
+        </motion.section>
+      </div>
+
+      <motion.section variants={rise} className="card mt-6 p-6 sm:p-7">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-4">
+          <h2 className="font-display text-2xl">Last 30 days</h2>
+          <div className="flex gap-4 text-sm text-muted">
+            <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: chartIris }} />Journal entries</span>
+            <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: chartMood }} />Mood logged</span>
+          </div>
+        </div>
+        {hasActivity ? (
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={activity} margin={{ top: 8, right: 0, left: -28, bottom: 0 }} barGap={2}>
+              <XAxis dataKey="date" tickFormatter={(d: string) => String(Number(d.slice(8)))} interval={4} tick={{ fontSize: 12, fill: axisColor }} axisLine={false} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: axisColor }} axisLine={false} tickLine={false} />
+              <Tooltip
+                cursor={{ fill: darkMode ? 'rgba(190,168,255,0.08)' : 'rgba(122,90,228,0.06)' }}
+                contentStyle={{ background: darkMode ? 'rgba(38,29,76,0.85)' : 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', border: `1px solid ${darkMode ? '#403570' : '#E2D8F6'}`, borderRadius: 14, color: darkMode ? '#F2EEFF' : '#2A1E52' }}
+              />
+              <Bar dataKey="Entries" fill={chartIris} radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Moods" fill={chartMood} radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="flex h-[240px] items-center justify-center rounded-2xl border border-dashed border-line text-center text-muted">
+            Write an entry or log a mood to see your activity.
+          </p>
+        )}
+      </motion.section>
+    </PageShell>
   );
 }

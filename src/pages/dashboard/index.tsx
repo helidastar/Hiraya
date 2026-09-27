@@ -1,19 +1,22 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
-import { FaBook, FaTasks, FaRss, FaFire, FaRegSmile, FaCheckCircle } from "react-icons/fa";
-import { MOODS, MoodIcon, moodLabel, moodScore } from "../../components/moods";
+import { FaBook, FaTasks, FaRss, FaFire, FaRegSmile, FaCheckCircle, FaPen } from "react-icons/fa";
+import { MOODS, MoodIcon, getMood, moodLabel, moodScore, moodTone } from "../../components/moods";
 import { localDateKey, dayBounds } from "../../lib/dates";
 import { setMoodForDay, clearMoodForDay } from "../../lib/moodLog";
 import Sidebar from "../../components/Sidebar";
+import Starfield, { Sparkle } from "../../components/Starfield";
+import { PageHeader } from "../../components/PageShell";
 import { supabase } from "../../lib/supabaseClient";
 import { useDarkMode } from "../../components/DarkModeContext";
 import { useRouter } from "next/router";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { TooltipProps } from 'recharts';
 import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { rise, stagger, ease, backdrop, panel } from '../../lib/motion';
 
 export default function Dashboard() {
-  const [collapsed, setCollapsed] = useState(true);
   type UserProfile = { first_name: string; id: string };
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -210,16 +213,28 @@ export default function Dashboard() {
       calendarCells.push(<div key={`empty-${i}`}></div>);
     } else {
       const emoji = monthlyMoods[dateStr];
-      const faded = !monthlyMoods[dateStr];
+      const isToday = dateStr === localDateKey();
       calendarCells.push(
-        <div
+        <motion.button
           key={dateStr}
-          className={`text-2xl text-center cursor-pointer select-none transition hover:scale-110 ${faded ? 'opacity-30' : ''}`}
+          type="button"
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.35 + day * 0.012, duration: 0.35, ease }}
+          whileHover={{ scale: 1.1, rotate: 3 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => openMoodModal(dateStr)}
           title={emoji ? `${dateStr}: ${moodLabel(emoji)}` : `Set mood for ${dateStr}`}
+          aria-label={emoji ? `${dateStr}: ${moodLabel(emoji)}` : `Set mood for ${dateStr}`}
+          className={`relative flex aspect-square flex-col items-center justify-center rounded-xl transition-[box-shadow,background-color,color] duration-300 hover:shadow-soft ${emoji ? moodTone(emoji) : 'border border-dashed border-line text-muted hover:border-iris hover:text-iris'} ${isToday ? 'ring-2 ring-iris ring-offset-2 ring-offset-surface' : ''}`}
         >
-          <MoodIcon value={emoji} className="mx-auto" />
-        </div>
+          <span className="absolute left-1.5 top-1 text-[10px] font-semibold leading-none opacity-70">{day}</span>
+          {emoji && (
+            <motion.span key={emoji} initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 420, damping: 18 }}>
+              <MoodIcon value={emoji} className="mt-1.5 text-base sm:text-lg" />
+            </motion.span>
+          )}
+        </motion.button>
       );
     }
   }
@@ -325,13 +340,10 @@ export default function Dashboard() {
     const { active, payload, label } = props as any;
     if (active && payload && payload.length) {
       return (
-        <div style={{ background: '#fff', borderRadius: 8, padding: 8, boxShadow: '0 2px 8px #A09ABC22', color: '#6C63A6' }}>
-          <div><b>{label}</b></div>
-          {payload.map((entry: any, idx: number) => (
-            <div key={idx} style={{ color: entry.color }}>{entry.name}: {entry.value}</div>
-          ))}
+        <div className="glass rounded-xl px-3 py-2 text-sm text-ink shadow-soft">
+          <div className="font-semibold">{label}</div>
           {payload[0] && payload[0].payload.label && (
-            <div style={{ marginTop: 4, fontStyle: 'italic', color: '#A09ABC' }}>Mood: {payload[0].payload.label}</div>
+            <div className="text-muted">{payload[0].payload.label}</div>
           )}
         </div>
       );
@@ -358,330 +370,282 @@ export default function Dashboard() {
     };
   };
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const todayLabel = today.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  const monthLabel = today.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const todayInfo = todayMood ? getMood(todayMood.emoji) : undefined;
+  const TodayIcon = todayInfo?.Icon;
+  const chartColor = darkMode ? '#BEA8FF' : '#7A5AE4';
+  const chartBlush = darkMode ? '#E28CC8' : '#F2A8D4';
+  const axisColor = darkMode ? '#B2A8D8' : '#6C6194';
+
+  // Mood picker shared by the calendar modal and the today modal
+  const moodGrid = (selected: string, onSelect: (mood: string) => void) => (
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+      {moodOptions.map((mood) => {
+        const active = selected === mood;
+        return (
+          <motion.button
+            key={mood}
+            type="button"
+            aria-pressed={active}
+            whileTap={{ scale: 0.94 }}
+            onClick={() => onSelect(mood)}
+            className={`flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-sm font-medium transition ${active ? `${moodTone(mood)} border-transparent shadow-soft` : 'border-line text-ink hover:border-iris'}`}
+          >
+            <MoodIcon value={mood} className="text-2xl" />
+            {moodLabel(mood)}
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+
+  const modalShell = "fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4 backdrop-blur-sm";
+  const modalBox = "card max-h-[90vh] w-full overflow-y-auto p-6 sm:p-8";
+
   return (
     <>
       <Head>
-        <title>Muni Dashboard</title>
-        <meta
-          name="description"
-          content="Muni minimalist journaling dashboard"
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>Dashboard | Hiraya</title>
+        <meta name="description" content="Your Hiraya dashboard" />
       </Head>
-      <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`}>
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        <main className={`flex-1 p-6 md:p-10 min-h-screen transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`}>
-          <div className="max-w-7xl mx-auto">
-            {/* Welcome Card */}
-            <div className="rounded-3xl bg-white/60 dark:bg-[#23234a] shadow-lg p-8 mb-8 backdrop-blur-md border border-white/30 dark:border-[#23234a]">
-              <h2 className="text-2xl md:text-3xl font-bold text-[#A09ABC] mb-2">Welcome back, {user?.first_name || 'User'}!</h2>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="text-[#6C63A6] text-lg">How are you feeling today?</div>
-                <div className="flex items-center gap-4">
-                  <span className="bg-[#B6A6CA] text-white rounded-full px-4 py-1 text-sm font-semibold shadow flex items-center gap-2">
-                    <FaFire aria-hidden /> {streak} day streak
-                  </span>
-                  {todayMood ? (
-                    <span className="bg-[#A09ABC] text-white rounded-full px-4 py-1 text-sm font-semibold shadow flex items-center gap-2">
-                      <MoodIcon value={todayMood.emoji} /> {moodLabel(todayMood.emoji)}
-                    </span>
+      <div className="sky relative min-h-screen text-ink">
+        <Starfield count={50} />
+        <Sidebar />
+        <main className="app-main relative">
+          <motion.div className="mx-auto max-w-6xl" variants={stagger(0.08)} initial="hidden" animate="show">
+            <PageHeader
+              eyebrow={todayLabel}
+              title={<>{greeting}{user?.first_name ? <>, <span className="text-aurora italic">{user.first_name}</span></> : ''}.</>}
+              actions={<>
+                <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-soft">
+                  <FaFire className="text-mood-4" aria-hidden />
+                  <motion.span key={streak} initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.3, ease }}>{streak}</motion.span> day streak
+                </span>
+                <button onClick={handleNewEntry} className="btn-primary">
+                  <FaPen aria-hidden className="text-sm" /> New entry
+                </button>
+              </>}
+            />
+
+            <motion.div className="grid gap-6 lg:grid-cols-3" variants={stagger(0.08)}>
+              {/* Today */}
+              <motion.section variants={rise} className={`relative flex min-h-[20rem] flex-col justify-between overflow-hidden rounded-3xl p-7 shadow-soft transition-colors duration-500 ${todayMood ? moodTone(todayMood.emoji) : 'night dark'}`}>
+                {/* Before a mood is logged, the card is a night sky waiting for its sunrise */}
+                {todayMood ? (
+                  <>
+                    <Sparkle size={18} className="star absolute right-8 top-8 opacity-60" />
+                    <Sparkle size={10} className="star absolute right-16 top-20 opacity-50 [--delay:-1.2s]" />
+                    <div className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-white/20 blur-2xl" />
+                  </>
+                ) : (
+                  <>
+                    <Starfield className="absolute" count={24} seed={9} shooting={false} />
+                    <motion.div className="planet top-[calc(100%-4.5rem)]" initial={{ y: 60 }} animate={{ y: 0 }} transition={{ duration: 1.4, ease }} />
+                  </>
+                )}
+                <div className="relative">
+                  <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${todayMood ? 'opacity-70' : 'text-muted'}`}>Today</p>
+                  {todayInfo && TodayIcon ? (
+                    <>
+                      <motion.div key={todayMood.emoji} initial={{ scale: 0.5, rotate: -12, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 16 }} className="mt-6 inline-block">
+                        <TodayIcon className="text-6xl" aria-hidden />
+                      </motion.div>
+                      <p className="mt-4 font-display text-3xl">{todayInfo.label}</p>
+                      <p className="mt-2 opacity-80">{todayInfo.advice}</p>
+                    </>
                   ) : (
-                    <span className="bg-[#A09ABC] text-white rounded-full px-4 py-1 text-sm font-semibold shadow flex items-center gap-2">
-                      No mood yet
-                    </span>
+                    <>
+                      <motion.div className="mt-6 inline-block" animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>
+                        <FaRegSmile className="text-6xl text-iris drop-shadow-[0_0_18px_rgb(var(--iris)/0.7)]" aria-hidden />
+                      </motion.div>
+                      <p className="mt-4 font-display text-3xl">How are you feeling?</p>
+                      <p className="mt-2 text-muted">Log a mood to fill in today on your calendar.</p>
+                    </>
                   )}
                 </div>
-              </div>
-            </div>
-            {/* Main Grid - 3 columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-              {/* Mood Calendar */}
-              <div className="rounded-2xl bg-white/60 dark:bg-[#23234a] shadow p-6 backdrop-blur-md border border-white/30 dark:border-[#23234a] col-span-1">
-                <h3 className="text-xl font-bold text-[#A09ABC] mb-4">Mood Calendar</h3>
-                <div className="text-center text-[#6C63A6] font-semibold mb-2">{today.toLocaleString('default', { month: 'long', year: 'numeric' })}</div>
-                <div className="grid grid-cols-7 gap-2">
-                  {[...Array(7)].map((_, i) => (
-                    <div key={i} className="text-xs text-[#A09ABC] font-bold text-center">
-                      {["S", "M", "T", "W", "T", "F", "S"][i]}
-                    </div>
+                <button
+                  onClick={handleUpdateMood}
+                  className={todayMood ? 'relative mt-8 self-start rounded-full bg-black/10 px-5 py-2.5 font-semibold transition hover:bg-black/20' : 'btn-primary relative mt-8 self-start'}
+                >
+                  {todayMood ? 'Change mood' : 'Log mood'}
+                </button>
+              </motion.section>
+
+              {/* Mood calendar */}
+              <motion.section variants={rise} className="card p-6 sm:p-7 lg:col-span-2">
+                <div className="mb-5 flex items-baseline justify-between gap-4">
+                  <h2 className="font-display text-2xl">{monthLabel}</h2>
+                  <span className="text-sm text-muted">{daysWithMood} of {daysInMonth} days logged</span>
+                </div>
+                <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                    <div key={d} className="pb-1 text-center text-xs font-semibold text-muted">{d}</div>
                   ))}
                   {calendarCells}
                 </div>
-              </div>
-              {/* Today's Mood */}
-              <div className="rounded-2xl bg-white/60 dark:bg-[#23234a] shadow p-6 flex flex-col items-center justify-center backdrop-blur-md border border-white/30 dark:border-[#23234a]">
-                <div className="text-lg font-semibold text-[#6C63A6] mb-2">Today's Mood</div>
-                <div className="text-5xl mb-2">
-                  {todayMood ? (
-                    <MoodIcon value={todayMood.emoji} className="text-[#A09ABC]" />
-                  ) : (
-                    <FaRegSmile className="opacity-30 text-[#A09ABC]" />
-                  )}
+                <div className="mt-5 flex items-center gap-3 text-xs text-muted">
+                  <span>Low</span>
+                  <div className="h-2 w-40 rounded-full bg-[linear-gradient(90deg,rgb(var(--mood-1)),rgb(var(--mood-2)),rgb(var(--mood-3)),rgb(var(--mood-4)),rgb(var(--mood-5)))]" />
+                  <span>High</span>
                 </div>
-                <div className="text-[#A09ABC] text-base font-semibold mb-4">
-                  {todayMood ? moodLabel(todayMood.emoji) : 'No mood logged'}
+              </motion.section>
+
+              {/* Mood this month */}
+              <motion.section variants={rise} className="card p-6 sm:p-7 lg:col-span-2">
+                <div className="mb-4 flex items-baseline justify-between gap-4">
+                  <div>
+                    <h2 className="font-display text-2xl">Mood this month</h2>
+                    <p className="mt-1 text-sm text-muted">{moodConsistency}% of days logged</p>
+                  </div>
+                  <button onClick={handleViewTrends} className="btn-ghost py-2 text-sm">View report</button>
                 </div>
-                <button onClick={handleUpdateMood} className="bg-[#A09ABC] text-white px-5 py-2 rounded-lg font-bold shadow hover:bg-[#B6A6CA] transition">
-                  Update Mood
-                </button>
-              </div>
-              {/* Mood Consistency with area chart (analytics style) */}
-              <div className="rounded-2xl bg-white/60 dark:bg-[#23234a] shadow p-6 flex flex-col items-center justify-center backdrop-blur-md border border-white/30 dark:border-[#23234a]">
-                <div className="text-lg font-semibold text-[#6C63A6] mb-2">Mood Consistency</div>
-                <ResponsiveContainer width="100%" height={140}>
-                  <AreaChart data={moodChartData || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="lightPurple" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#B6A6CA" stopOpacity={0.7} />
-                        <stop offset="100%" stopColor="#E1D8E9" stopOpacity={0.2} />
-                      </linearGradient>
-                      <linearGradient id="darkPurple" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#6C3483" stopOpacity={0.8} />
-                        <stop offset="100%" stopColor="#23234a" stopOpacity={0.2} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#A09ABC' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 12, fill: '#A09ABC' }} domain={[1, 5]} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <Tooltip content={<CustomTooltip />} labelStyle={{ color: '#6C63A6' }} />
-                    <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ color: '#A09ABC', fontWeight: 600, fontSize: 15 }} />
-                    <Area type="monotone" dataKey="entries" stroke="#6C3483" fill="url(#darkPurple)" strokeWidth={3} dot={{ r: 4, fill: '#6C3483' }} activeDot={{ r: 7, fill: '#6C3483' }} name="entries" />
-                    <Area type="monotone" dataKey="moods" stroke="#8B7BB9" fill="url(#lightPurple)" strokeWidth={3} dot={{ r: 4, fill: '#8B7BB9' }} activeDot={{ r: 7, fill: '#8B7BB9' }} name="moods" />
-                  </AreaChart>
-                </ResponsiveContainer>
-                <button onClick={handleViewTrends} className="mt-4 bg-[#B6A6CA] text-white px-5 py-2 rounded-lg font-bold shadow hover:bg-[#A09ABC] transition">
-                  View Trends
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Recent Activity */}
-              <div className="rounded-2xl shadow-xl p-6 bg-gradient-to-br from-[#E1D8E9]/80 to-[#B6A6CA]/80 border border-white/40 col-span-1">
-                <div className="flex items-center gap-2 text-lg font-semibold mb-2 text-[#6C63A6]">
-                  <FaTasks className="text-2xl text-[#A09ABC]" /> Recent Activity
-                </div>
-                <ul className="text-[#6C63A6] text-sm space-y-2 w-full">
-                  <li className="flex items-center gap-2">
-                    <FaRegSmile className="text-[#A09ABC] shrink-0" />
+                {moodChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={moodChartData} margin={{ top: 10, right: 8, left: -24, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="moodFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={chartBlush} stopOpacity={0.4} />
+                          <stop offset="100%" stopColor={chartColor} stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="moodStroke" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor={chartColor} />
+                          <stop offset="100%" stopColor={chartBlush} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" tickFormatter={(d: string) => String(Number(d.slice(8)))} tick={{ fontSize: 12, fill: axisColor }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12, fill: axisColor }} domain={[1, 5]} ticks={[1, 3, 5]} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area type="monotone" dataKey="moods" stroke="url(#moodStroke)" fill="url(#moodFill)" strokeWidth={3} dot={{ r: 3, fill: chartColor, strokeWidth: 0 }} activeDot={{ r: 6, fill: chartColor }} name="Mood score" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="flex h-[200px] items-center justify-center rounded-2xl border border-dashed border-line px-6 text-center text-muted">
+                    Log a mood to see your month take shape.
+                  </p>
+                )}
+              </motion.section>
+
+              {/* Recent activity */}
+              <motion.section variants={rise} className="card flex flex-col p-6 sm:p-7">
+                <h2 className="font-display text-2xl">Recent activity</h2>
+                <ul className="mt-5 flex-1 space-y-4 text-sm">
+                  <li className="flex gap-3">
+                    <span className="icon-badge"><FaRegSmile /></span>
                     {recentMood ? (
-                      <>
-                        Logged mood: <span className="font-semibold">{moodLabel(recentMood.emoji)}</span>
-                        <span className="ml-auto text-[#A09ABC]/70">{formatTime(recentMood.created_at)}</span>
-                      </>
-                    ) : (
-                      <span className="italic text-[#A09ABC]/70">No mood logged yet</span>
-                    )}
+                      <div className="min-w-0"><p>Logged <span className="font-semibold">{moodLabel(recentMood.emoji)}</span></p><p className="text-muted">{formatTime(recentMood.created_at)}</p></div>
+                    ) : <p className="self-center text-muted">No mood logged yet</p>}
                   </li>
-                  <li className="flex items-center gap-2">
-                    <FaBook className="text-[#A09ABC] shrink-0" />
+                  <li className="flex gap-3">
+                    <span className="icon-badge"><FaBook /></span>
                     {recentJournal ? (
-                      <>
-                        Created journal entry{recentJournal.title ? `: ${recentJournal.title}` : ""}
-                        <span className="ml-auto text-[#A09ABC]/70">{formatTime(recentJournal.created_at)}</span>
-                      </>
-                    ) : (
-                      <span className="italic text-[#A09ABC]/70">No journal entry yet</span>
-                    )}
+                      <div className="min-w-0"><p className="truncate">Wrote <span className="font-semibold">{recentJournal.title || 'an entry'}</span></p><p className="text-muted">{formatTime(recentJournal.created_at)}</p></div>
+                    ) : <p className="self-center text-muted">No journal entry yet</p>}
                   </li>
-                  <li className="flex items-center gap-2">
-                    <FaCheckCircle className="text-[#A09ABC] shrink-0" />
+                  <li className="flex gap-3">
+                    <span className="icon-badge"><FaCheckCircle /></span>
                     {recentTask ? (
-                      <>
-                        Completed task: <span className="font-semibold">{recentTask.description}</span>
-                        <span className="ml-auto text-[#A09ABC]/70">{formatTime(recentTask.completed_at || recentTask.created_at)}</span>
-                      </>
-                    ) : (
-                      <span className="italic text-[#A09ABC]/70">No completed task yet</span>
-                    )}
+                      <div className="min-w-0"><p className="truncate">Finished <span className="font-semibold">{recentTask.description}</span></p><p className="text-muted">{formatTime(recentTask.completed_at || recentTask.created_at)}</p></div>
+                    ) : <p className="self-center text-muted">No completed task yet</p>}
                   </li>
                 </ul>
-              </div>
-              {/* Quick Entry */}
-              <div className="rounded-2xl shadow-xl p-6 flex flex-col items-center bg-gradient-to-br from-[#B6A6CA]/80 to-[#E1D8E9]/80 border border-white/40 col-span-1">
-                <div className="flex items-center gap-2 text-lg font-semibold mb-2 text-[#6C63A6]">
-                  <FaBook className="text-2xl text-[#A09ABC]" /> Quick Entry
+                <div className="mt-6 flex gap-2 border-t border-line pt-5">
+                  <button onClick={() => router.push('/dashboard/task')} className="btn-ghost flex-1 px-3 py-2 text-sm"><FaTasks aria-hidden /> Tasks</button>
+                  <button onClick={() => router.push('/feed')} className="btn-ghost flex-1 px-3 py-2 text-sm"><FaRss aria-hidden /> Feed</button>
                 </div>
-                <p className="text-[#6C63A6] mb-4 text-center">Tap below to create a new journal entry</p>
-                <button onClick={handleNewEntry} className="bg-[#A09ABC] text-white px-5 py-2 rounded-lg font-bold shadow flex items-center gap-2 hover:bg-[#B6A6CA] transition">
-                  <span className="text-xl">+</span> New Entry
-                </button>
-              </div>
-              {/* Community Feed */}
-              <div className="rounded-2xl shadow-xl p-6 flex flex-col items-center bg-gradient-to-br from-[#B6A6CA]/80 to-[#E1D8E9]/80 border border-white/40 col-span-1">
-                <div className="flex items-center gap-2 text-lg font-semibold mb-4 text-[#6C63A6]">
-                  <FaRss className="text-2xl text-[#A09ABC]" /> Community Feed
-                </div>
-                <div className="text-[#6C63A6] text-center mb-4">Discover inspiring reflections from the community</div>
-                <button
-                  onClick={() => router.push('/feed')}
-                  className="bg-[#A09ABC] text-white px-5 py-2 rounded-lg font-bold shadow hover:bg-[#B6A6CA] transition"
-                >
-                  Explore Feed
-                </button>
-              </div>
-            </div>
-          </div>
+              </motion.section>
+            </motion.div>
+          </motion.div>
         </main>
       </div>
-      {/* Mood Modal */}
+
+      {/* Mood modal (calendar day or today) */}
+      <AnimatePresence>
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white dark:bg-[#23234a] rounded-2xl p-8 shadow-lg min-w-[320px] max-w-[90vw]">
-            <h3 className="text-xl font-bold mb-4 text-center">Select Mood for {modalDate}</h3>
-            <div className="grid grid-cols-5 gap-4 mb-6">
-              {moodOptions.map((mood) => (
-                <button
-                  key={mood}
-                  title={moodLabel(mood)}
-                  className={`text-2xl w-16 h-16 rounded-xl flex flex-col items-center justify-center transition-all duration-200 border-2 ${modalMood === mood ? 'border-[#A09ABC] bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white' : 'border-transparent bg-white dark:bg-[#23234a] text-[#6C63A6] dark:text-[#A09ABC]'}`}
-                  onClick={() => setModalMood(mood)}
-                >
-                  <MoodIcon value={mood} />
-                  <span className="text-[10px] mt-1 leading-none">{moodLabel(mood)}</span>
-                </button>
-              ))}
-            </div>
-            <div className="flex justify-between gap-4 items-center">
+        <motion.div key="mood-modal" {...backdrop} className={modalShell} onClick={closeMoodModal}>
+          <motion.div {...panel} className={`${modalBox} max-w-lg`} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="mood-modal-title">
+            <h3 id="mood-modal-title" className="font-display text-2xl">How did you feel?</h3>
+            <p className="mb-6 mt-1 text-muted">{new Date(modalDate + 'T00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+            {moodGrid(modalMood, setModalMood)}
+            <div className="mt-7 flex items-center justify-between gap-3">
               <div>
                 {monthlyMoods[modalDate] && (
-                  <button
-                    onClick={deleteMoodForDate}
-                    className="px-4 py-2 rounded bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 font-semibold mr-2"
-                  >
-                    Delete
+                  <button onClick={deleteMoodForDate} className="rounded-full px-4 py-2.5 font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40">
+                    Clear mood
                   </button>
                 )}
               </div>
-              <div className="flex gap-4">
-                <button onClick={closeMoodModal} className="px-4 py-2 rounded bg-gray-200 dark:bg-[#23234a] text-gray-700 dark:text-[#A09ABC] font-semibold">Cancel</button>
-                <button
-                  onClick={saveMoodForDate}
-                  disabled={!modalMood}
-                  className="px-6 py-2 rounded bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-bold disabled:opacity-50"
-                >
-                  Save
-                </button>
+              <div className="flex gap-2">
+                <button onClick={closeMoodModal} className="btn-ghost">Cancel</button>
+                <button onClick={saveMoodForDate} disabled={!modalMood} className="btn-primary">Save mood</button>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
       {dashboardMoodModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white dark:bg-[#23234a] rounded-2xl p-8 shadow-lg min-w-[320px] max-w-[90vw]">
-            <h3 className="text-xl font-bold mb-4 text-center">Select Mood for {localDateKey()}</h3>
-            <div className="grid grid-cols-5 gap-4 mb-6">
-              {moodOptions.map((mood) => (
-                <button
-                  key={mood}
-                  title={moodLabel(mood)}
-                  className={`text-2xl w-16 h-16 rounded-xl flex flex-col items-center justify-center transition-all duration-200 border-2 ${dashboardSelectedMood === mood ? 'border-[#A09ABC] bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white' : 'border-transparent bg-white dark:bg-[#23234a] text-[#6C63A6] dark:text-[#A09ABC]'}`}
-                  onClick={() => setDashboardSelectedMood(mood)}
-                >
-                  <MoodIcon value={mood} />
-                  <span className="text-[10px] mt-1 leading-none">{moodLabel(mood)}</span>
-                </button>
-              ))}
+        <motion.div key="today-modal" {...backdrop} className={modalShell} onClick={() => setDashboardMoodModalOpen(false)}>
+          <motion.div {...panel} className={`${modalBox} max-w-lg`} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <h3 className="mb-6 font-display text-2xl">How are you feeling today?</h3>
+            {moodGrid(dashboardSelectedMood, setDashboardSelectedMood)}
+            <div className="mt-7 flex justify-end gap-2">
+              <button onClick={() => setDashboardMoodModalOpen(false)} className="btn-ghost">Cancel</button>
+              <button onClick={handleSaveDashboardMood} disabled={!dashboardSelectedMood} className="btn-primary">Save mood</button>
             </div>
-            <div className="flex justify-between gap-4 items-center">
-              <button onClick={() => setDashboardMoodModalOpen(false)} className="px-4 py-2 rounded bg-gray-200 dark:bg-[#23234a] text-gray-700 dark:text-[#A09ABC] font-semibold">Cancel</button>
-              <button
-                onClick={handleSaveDashboardMood}
-                disabled={!dashboardSelectedMood}
-                className="px-6 py-2 rounded bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-bold disabled:opacity-50"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
-      {/* Mood Consistency Report Modal */}
+
+      {/* Monthly mood report */}
       {showTrendsModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-2xl p-8 shadow-lg max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4 text-[#A09ABC]">Mood Consistency Report</h2>
+        <motion.div key="report-modal" {...backdrop} className={modalShell} onClick={() => setShowTrendsModal(false)}>
+          <motion.div {...panel} className={`${modalBox} max-w-md`} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="report-title">
+            <h2 id="report-title" className="font-display text-2xl">Mood report</h2>
+            <p className="mb-6 mt-1 text-muted">{monthLabel}</p>
             {(() => {
               const stats = getMoodStats();
-              if (!stats) return <div>No mood data for this month.</div>;
-              const avgNum = stats.avg;
-              const modalBestDay = stats.bestDay;
-              const modalWorstDay = stats.worstDay;
-              const modalMostCommon = stats.mostCommon;
-
-              // Daily and weekly stats
+              if (!stats) return <p className="text-muted">No moods logged this month yet.</p>;
               const todayStr = localDateKey();
               const weekAgo = new Date();
               weekAgo.setDate(weekAgo.getDate() - 6);
               const weekStr = localDateKey(weekAgo);
-              // Filter moods for today and this week
-              const dailyMoods = Object.entries(monthlyMoods).filter(([date]) => date === todayStr);
               const weeklyMoods = Object.entries(monthlyMoods).filter(([date]) => date >= weekStr && date <= todayStr);
-              const dailyMoodScore = dailyMoods.length > 0 ? moodScore(dailyMoods[0][1]) : null;
-              const weeklyMoodScores = weeklyMoods.map(([_, emoji]) => moodScore(emoji));
-              const weeklyAvgMood = weeklyMoodScores.length > 0 ? (weeklyMoodScores.reduce((a, b) => a + b, 0) / weeklyMoodScores.length).toFixed(2) : null;
-              const weeklyMostCommon = (() => {
-                if (weeklyMoods.length === 0) return null;
-                const freq: Record<string, number> = {};
-                weeklyMoods.forEach(([_, emoji]) => { freq[emoji] = (freq[emoji] || 0) + 1; });
-                return Object.keys(freq).reduce((a, b) => freq[a] > freq[b] ? a : b);
-              })();
+              const weeklyScores = weeklyMoods.map(([, emoji]) => moodScore(emoji));
+              const weeklyAvg = weeklyScores.length > 0 ? (weeklyScores.reduce((a, b) => a + b, 0) / weeklyScores.length).toFixed(1) : null;
+              const rows: [string, React.ReactNode][] = [
+                ["Average this month", <>{stats.avg.toFixed(1)} <span className="text-muted">/ 5</span></>],
+                ["Average this week", weeklyAvg ? <>{weeklyAvg} <span className="text-muted">/ 5</span></> : <span className="text-muted">No moods</span>],
+                ["Most frequent", moodLabel(stats.mostCommon)],
+                ["Best day", `${stats.bestDay[0]} · ${moodLabel(stats.bestDay[1])}`],
+                ["Toughest day", `${stats.worstDay[0]} · ${moodLabel(stats.worstDay[1])}`],
+              ];
               return (
                 <>
-                  <div className="mb-4 text-[#6C63A6] text-base">
-                    Here’s a summary of your mood patterns for <b>{today.toLocaleString('default', { month: 'long', year: 'numeric' })}</b>:
-                  </div>
-                  {/* Daily Report */}
-                  <div className="mb-4 p-3 rounded-lg bg-[#F3F0F9]">
-                    <div className="font-semibold text-[#A09ABC] mb-1">Today’s Report</div>
-                    <div>Average Mood: <b>{dailyMoodScore ? dailyMoodScore + ' (' + moodLabel(dailyMoods[0][1]) + ')' : 'No mood logged'}</b></div>
-                    <div>Entries: <b>{dailyMoods.length}</b></div>
-                  </div>
-                  {/* Weekly Report */}
-                  <div className="mb-4 p-3 rounded-lg bg-[#F3F0F9]">
-                    <div className="font-semibold text-[#A09ABC] mb-1">This Week’s Report</div>
-                    <div>Average Mood: <b>{weeklyAvgMood ? weeklyAvgMood + ' (' + (weeklyMostCommon ? moodLabel(weeklyMostCommon) : '') + ')' : 'No moods logged'}</b></div>
-                    <div>Most Common Mood: <b>{weeklyMostCommon ? moodLabel(weeklyMostCommon) : 'N/A'}</b></div>
-                    <div>Entries: <b>{weeklyMoods.length}</b></div>
-                  </div>
-                  {/* Monthly Report */}
-                  <div className="mb-2">
-                    <span className="font-semibold text-[#A09ABC]">Average Mood Score:</span>
-                    <span className="ml-2">{stats.avg.toFixed(2)} <span className="text-xs text-[#6C63A6]">(1 = lowest, 5 = happiest)</span></span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="font-semibold text-[#A09ABC]">Most Frequent Mood:</span>
-                    <span className="ml-2">{moodLabel(modalMostCommon)}</span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="font-semibold text-[#A09ABC]">Best Day:</span>
-                    <span className="ml-2">{modalBestDay[0]} — {moodLabel(modalBestDay[1])}</span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="font-semibold text-[#A09ABC]">Toughest Day:</span>
-                    <span className="ml-2">{modalWorstDay[0]} — {moodLabel(modalWorstDay[1])}</span>
-                  </div>
-                  <div className="mt-6 text-[#6C63A6] text-base font-semibold">
-                    {avgNum >= 4 ? (
-                      <>You’ve been in a <span className="text-[#A09ABC] font-bold">great mood</span> this month! Keep it up and continue spreading positivity.</>
-                    ) : avgNum >= 3 ? (
-                      <>Your mood has been <span className="text-[#A09ABC] font-bold">balanced</span>. Remember to take time for yourself and celebrate small wins.</>
-                    ) : (
-                      <>It’s been a <span className="text-[#A09ABC] font-bold">challenging month</span>. Remember, it’s okay to have ups and downs. Take care of yourself and reach out if you need support.</>
-                    )}
-                  </div>
+                  <dl className="divide-y divide-line">
+                    {rows.map(([term, value]) => (
+                      <div key={term} className="flex items-center justify-between gap-4 py-3">
+                        <dt className="text-muted">{term}</dt>
+                        <dd className="text-right font-semibold">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <p className="mt-6 rounded-2xl bg-gradient-to-br from-iris-soft to-blush/20 p-4 leading-relaxed">
+                    {stats.avg >= 4
+                      ? "You've been in a great mood this month. Keep doing what's working."
+                      : stats.avg >= 3
+                      ? "Your mood has been balanced. Make time for yourself and notice the small wins."
+                      : "It's been a hard month. Ups and downs are normal. Be gentle with yourself, and reach out if you need support."}
+                  </p>
                 </>
               );
             })()}
-            <button
-              className="mt-8 bg-[#A09ABC] text-white px-5 py-2 rounded-lg font-bold shadow hover:bg-[#B6A6CA] transition"
-              onClick={() => setShowTrendsModal(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
+            <button className="btn-primary mt-7 w-full" onClick={() => setShowTrendsModal(false)}>Done</button>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </>
   );
 }

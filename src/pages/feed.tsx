@@ -1,13 +1,16 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
-import Sidebar from "../components/Sidebar";
-import Head from "next/head";
 import Image from "next/image";
-import { FaHeart, FaRegHeart, FaShare, FaComment, FaEllipsisH, FaTrash, FaRegEdit, FaUndo, FaRedo } from "react-icons/fa";
-import { useDarkMode } from "../components/DarkModeContext";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import toast from "react-hot-toast";
+import { FaHeart, FaRegHeart, FaShare, FaComment, FaEllipsisH, FaTrash, FaRegEdit, FaUndo, FaRedo, FaPen } from "react-icons/fa";
 import Modal from '../components/Modal';
 import MoodPicker from '../components/MoodPicker';
-import { MoodIcon, moodLabel } from '../components/moods';
+import PageShell, { Loader } from '../components/PageShell';
+import Starfield from '../components/Starfield';
+import { MoodIcon, moodLabel, moodTone } from '../components/moods';
+import { rise, stagger, ease } from '../lib/motion';
 
 interface FeedEntry {
   id: string;
@@ -36,13 +39,11 @@ interface Comment {
 }
 
 export default function Feed() {
-  const [collapsed, setCollapsed] = useState(true);
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'recent' | 'popular'>('all');
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
-  const { darkMode } = useDarkMode();
   const [comments, setComments] = useState<Record<string, Comment[]>>({});
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [commentLoading, setCommentLoading] = useState<Record<string, boolean>>({});
@@ -187,9 +188,9 @@ export default function Feed() {
         console.log('Share cancelled');
       }
     } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(entry.content);
-      // You could show a toast notification here
+      // Fallback: copy the entry text
+      await navigator.clipboard.writeText(entry.content);
+      toast.success('Entry copied to clipboard');
     }
   };
 
@@ -279,7 +280,7 @@ export default function Feed() {
       setEntries(prev => prev.map(e => e.id === editEntry.id ? { ...e, title: editTitle, content: editContent, mood: editMood || '' } : e));
       setEditEntry(null);
     } else {
-      alert('Failed to update entry.');
+      toast.error('The entry didn\'t save. Try again.');
     }
   }
 
@@ -291,305 +292,245 @@ export default function Feed() {
     setDeleteEntryId(null);
   }
 
+  const iconBtn = "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-muted transition hover:bg-iris-soft hover:text-iris";
+
   return (
-    <>
-      <Head>
-        <title>Community Feed | Muni</title>
-        <meta name="description" content="See public reflections from the community" />
-      </Head>
-      <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#B6A6CA] to-[#D4BEBE]'}`}>
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        <main className={`flex-1 p-10 bg-transparent min-h-screen transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-64'}`}>
-          <div className="max-w-4xl mx-auto">
-            {/* Header */}
-            <div className="mb-8">
-              <h2 className={`text-4xl font-bold mb-4 font-serif ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>
-                Community Feed
-              </h2>
-              <p className={`text-lg ${darkMode ? 'text-[#B6A6CA]' : 'text-[#6C63A6]'}`}>
-                Discover inspiring reflections from our community
-              </p>
-            </div>
+    <PageShell
+      title="Community"
+      eyebrow="Entries people chose to share"
+      width="max-w-3xl"
+      actions={
+        <div className="glass flex rounded-full p-1 shadow-soft" role="tablist" aria-label="Sort entries">
+          {([['recent', 'Newest'], ['popular', 'Most liked']] as const).map(([key, label]) => {
+            const active = key === 'popular' ? filter === 'popular' : filter !== 'popular';
+            return (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setFilter(key)}
+                className={`relative rounded-full px-4 py-2 text-sm font-semibold transition-colors ${active ? 'text-on-iris' : 'text-muted hover:text-ink'}`}
+              >
+                {active && <motion.span layoutId="feed-tab" className="absolute inset-0 rounded-full bg-iris" transition={{ type: 'spring', stiffness: 400, damping: 32 }} />}
+                <span className="relative">{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      }
+    >
+      {error && (
+        <motion.p variants={rise} role="alert" className="mb-6 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
+          The feed didn&apos;t load. Check your connection and refresh the page.
+        </motion.p>
+      )}
 
-            {/* Filter Tabs */}
-            <div className="flex gap-2 mb-6">
-              {['all', 'recent', 'popular'].map((filterType) => (
-                <button
-                  key={filterType}
-                  onClick={() => setFilter(filterType as any)}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${
-                    filter === filterType
-                      ? 'bg-[#A09ABC] text-white'
-                      : darkMode 
-                        ? 'bg-[#23234a] text-[#A09ABC] hover:bg-[#23234a]/80'
-                        : 'bg-white/30 text-[#6C63A6] hover:bg-white/40'
-                  }`}
-                >
-                  {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            {/* Error State */}
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-                {error}
-              </div>
-            )}
-
-            {/* Loading State */}
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#A09ABC]"></div>
-              </div>
-            ) : entries.length === 0 ? (
-              <div className={`rounded-xl p-8 text-center ${darkMode ? 'bg-[#23234a] text-[#B6A6CA]' : 'bg-white/40 text-[#B6A6CA]'} shadow backdrop-blur-md border border-white/30`}>
-                <FaRegEdit className="text-5xl mb-4 mx-auto" aria-hidden />
-                <h3 className="text-xl font-semibold mb-2">No public entries yet</h3>
-                <p>Be the first to share your reflection with the community!</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-6">
-                {entries.map(entry => (
-                  <div key={entry.id} className={`rounded-2xl shadow-xl backdrop-blur-md p-6 border ${darkMode ? 'bg-[#23234a]/80 border-[#A09ABC]/20' : 'bg-white/30 border-white/40'}`}>
-                    {/* User Info and ... button */}
-                    <div className="flex items-center gap-3 mb-2 relative">
-                      <Image 
-                        src={entry.profiles?.avatar_url || "/default-avatar.png"} 
-                        alt="Avatar" 
-                        width={48} 
-                        height={48} 
-                        className="rounded-full border-2 border-[#E1D8E9] bg-white" 
-                      />
-                      <div className="flex-1">
-                        <div className={`font-semibold ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>{entry.profiles?.full_name || "Anonymous"}</div>
-                        {/* Journal Title and Mood on the same line */}
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-2xl font-bold font-serif text-[#6C63A6]">{entry.title}</div>
-                        </div>
-                        <div className={`text-sm ${darkMode ? 'text-[#B6A6CA]' : 'text-[#B6A6CA]'}`}>{new Date(entry.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}</div>
-                      </div>
-                      {/* ... button for entry owner */}
-                      {currentUser && currentUser.id === entry.user_id && (
-                        <div className="relative">
-                          <button
-                            onClick={() => setOpenOptions(openOptions === entry.id ? null : entry.id)}
-                            className="p-2 rounded-full hover:bg-[#A09ABC]/10 focus:outline-none"
-                            title="More options"
+      {loading ? (
+        <Loader />
+      ) : entries.length === 0 ? (
+        <motion.div variants={rise} className="night dark px-6 pb-28 pt-16 text-center">
+          <Starfield className="absolute" count={30} seed={19} shooting={false} />
+          <div className="planet top-[calc(100%-5rem)]" />
+          <div className="relative">
+          <FaRegEdit className="mx-auto mb-4 text-4xl text-iris drop-shadow-[0_0_14px_rgb(var(--iris)/0.7)]" aria-hidden />
+          <p className="font-display text-3xl">Nothing shared yet</p>
+          <p className="mx-auto mt-2 max-w-sm text-muted">Turn on Public when you write a journal entry and it will appear here.</p>
+          <Link href="/dashboard/journal?new=1" className="btn-primary mt-6">Write an entry</Link>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div variants={stagger(0.06)} initial="hidden" animate="show" className="flex flex-col gap-5">
+          <AnimatePresence initial={false}>
+          {entries.map(entry => {
+            const entryComments = comments[entry.id] || [];
+            const isOwner = !!currentUser && currentUser.id === entry.user_id;
+            return (
+              <motion.article
+                key={entry.id}
+                variants={rise}
+                layout
+                exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.2 } }}
+                className="card card-lift relative overflow-hidden p-5 sm:p-6"
+              >
+                <span className={`absolute inset-y-0 left-0 w-1.5 ${entry.mood ? moodTone(entry.mood).split(' ')[0] : 'bg-line'}`} aria-hidden />
+                <header className="flex items-center gap-3">
+                  <Image
+                    src={entry.profiles?.avatar_url || "/default-avatar.png"}
+                    alt=""
+                    width={44}
+                    height={44}
+                    className="h-11 w-11 rounded-full border border-line bg-paper object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{entry.profiles?.full_name || "Anonymous"}</p>
+                    <p className="text-sm text-muted">{new Date(entry.created_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
+                  {entry.mood && (
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${moodTone(entry.mood)}`}>
+                      <MoodIcon value={entry.mood} /> {moodLabel(entry.mood)}
+                    </span>
+                  )}
+                  {isOwner && (
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenOptions(openOptions === entry.id ? null : entry.id)}
+                        aria-label="Entry options"
+                        aria-expanded={openOptions === entry.id}
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:bg-iris-soft hover:text-ink"
+                      >
+                        <FaEllipsisH />
+                      </button>
+                      <AnimatePresence>
+                        {openOptions === entry.id && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                            transition={{ duration: 0.15 }}
+                            className="card absolute right-0 z-40 mt-2 w-36 origin-top-right overflow-hidden rounded-2xl p-1"
                           >
-                            <FaEllipsisH />
-                          </button>
-                          {openOptions === entry.id && (
-                            <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-[#A09ABC]/20 z-50">
-                              <button className="block w-full text-left px-4 py-2 text-[#6C63A6] hover:bg-[#A09ABC]/10" onClick={() => handleEditEntry(entry)}>Edit</button>
-                              <button className="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-100" onClick={() => setDeleteEntryId(entry.id)}>Delete</button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {entry.mood && (
-                      <div className="flex items-center gap-2 mb-2 text-[#A09ABC]">
-                        <MoodIcon value={entry.mood} className="text-2xl" />
-                        <span className="text-base font-medium text-[#B6A6CA]">{moodLabel(entry.mood)}</span>
-                      </div>
-                    )}
-
-                    {/* Content */}
-                    <div className={`whitespace-pre-wrap text-lg leading-relaxed mb-4 ${darkMode ? 'text-[#E1D8E9]' : 'text-[#6C63A6]'}`}>{entry.content}</div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-4 pt-4 border-t border-white/20">
-                      <button
-                        onClick={() => handleLike(entry.id)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition ${entry.is_liked ? 'text-red-500 bg-red-50' : darkMode ? 'text-[#A09ABC] hover:bg-[#23234a]/50' : 'text-[#6C63A6] hover:bg-white/20'}`}
-                      >
-                        {entry.is_liked ? <FaHeart /> : <FaRegHeart />}
-                        <span>{entry.likes_count || 0}</span>
-                      </button>
-                      <button
-                        onClick={() => handleShare(entry)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition ${darkMode ? 'text-[#A09ABC] hover:bg-[#23234a]/50' : 'text-[#6C63A6] hover:bg-white/20'}`}
-                      >
-                        <FaShare />
-                        <span>Share</span>
-                      </button>
-                      <button
-                        onClick={() => setOpenComments(openComments === entry.id ? null : entry.id)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition ${darkMode ? 'text-[#A09ABC] hover:bg-[#23234a]/50' : 'text-[#6C63A6] hover:bg-white/20'}`}
-                      >
-                        <FaComment />
-                        <span>Comment</span>
-                        <span className="ml-1 text-xs font-semibold">{(comments[entry.id] || []).length}</span>
-                      </button>
-                    </div>
-
-                    {/* Comments Section - only show if openComments === entry.id */}
-                    {openComments === entry.id && (
-                      <div className="mt-4 bg-white/80 rounded-lg p-4 border border-[#E1D8E9]">
-                        <div className="font-semibold text-[#A09ABC] mb-2">Comments</div>
-                        {commentErrors[entry.id] && (
-                          <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-2 text-sm">{commentErrors[entry.id]}</div>
+                            <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-paper" onClick={() => handleEditEntry(entry)}><FaPen className="text-xs text-muted" aria-hidden /> Edit</button>
+                            <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40" onClick={() => { setDeleteEntryId(entry.id); setOpenOptions(null); }}><FaTrash className="text-xs" aria-hidden /> Delete</button>
+                          </motion.div>
                         )}
-                        <div className="space-y-2 mb-2">
-                          {(comments[entry.id] || []).length === 0 && (
-                            <div className="text-[#B6A6CA] text-sm">No comments yet. Be the first to comment!</div>
-                          )}
-                          {(comments[entry.id] || []).map((comment) => (
-                            <div key={comment.id} className="flex items-start gap-2">
-                              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#A09ABC]/20 flex items-center justify-center text-[#A09ABC] font-bold">
-                                {comment.user?.full_name?.[0] || "U"}
-                              </div>
-                              <div className="flex-1">
-                                <div className="text-[#6C63A6] text-sm font-semibold">
-                                  {comment.user?.full_name || "User"}
-                                  <span className="ml-2 text-xs text-[#B6A6CA]">{new Date(comment.created_at).toLocaleString()}</span>
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </header>
+
+                {entry.title && <h2 className="mt-4 font-display text-2xl">{entry.title}</h2>}
+                <p className={`${entry.title ? 'mt-2' : 'mt-4'} whitespace-pre-wrap break-words text-[17px] leading-relaxed`}>{entry.content}</p>
+
+                <footer className="mt-5 flex items-center gap-1 border-t border-line pt-3">
+                  <button
+                    onClick={() => handleLike(entry.id)}
+                    aria-pressed={!!entry.is_liked}
+                    aria-label={entry.is_liked ? 'Unlike' : 'Like'}
+                    className={`${iconBtn} ${entry.is_liked ? '!text-rose-500 hover:!bg-rose-50 dark:hover:!bg-rose-950/40' : ''}`}
+                  >
+                    <motion.span key={String(entry.is_liked)} initial={{ scale: entry.is_liked ? 0.4 : 1 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }} className="flex">
+                      {entry.is_liked ? <FaHeart /> : <FaRegHeart />}
+                    </motion.span>
+                    <span className="tabular-nums">{entry.likes_count || 0}</span>
+                  </button>
+                  <button
+                    onClick={() => setOpenComments(openComments === entry.id ? null : entry.id)}
+                    aria-expanded={openComments === entry.id}
+                    className={`${iconBtn} ${openComments === entry.id ? 'bg-iris-soft !text-iris' : ''}`}
+                  >
+                    <FaComment /> <span className="tabular-nums">{entryComments.length}</span>
+                    <span className="sr-only">comments</span>
+                  </button>
+                  <button onClick={() => handleShare(entry)} className={`${iconBtn} ml-auto`}>
+                    <FaShare /> Share
+                  </button>
+                </footer>
+
+                <AnimatePresence initial={false}>
+                  {openComments === entry.id && (
+                    <motion.section
+                      key="comments"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3, ease }}
+                      className="overflow-hidden"
+                      aria-label="Comments"
+                    >
+                      <div className="mt-3 rounded-2xl bg-paper p-4">
+                        {commentErrors[entry.id] && (
+                          <p role="alert" className="mb-3 rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">{commentErrors[entry.id]}</p>
+                        )}
+                        {entryComments.length === 0 ? (
+                          <p className="mb-3 text-sm text-muted">No comments yet. Start the conversation.</p>
+                        ) : (
+                          <ul className="mb-4 space-y-3">
+                            {entryComments.map((comment) => (
+                              <li key={comment.id} className="group flex items-start gap-3">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-iris-soft text-sm font-semibold text-iris">
+                                  {comment.user?.full_name?.[0]?.toUpperCase() || "U"}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm">
+                                    <span className="font-semibold">{comment.user?.full_name || "User"}</span>
+                                    <span className="ml-2 text-xs text-muted">{new Date(comment.created_at).toLocaleDateString()}</span>
+                                  </p>
+                                  <p className="break-words">{comment.content}</p>
                                 </div>
-                                <div className="text-[#6C63A6] text-base">{comment.content}</div>
-                              </div>
-                              {(currentUser && (currentUser.id === comment.user_id || currentUser.id === entry.user_id)) && (
-                                <button
-                                  onClick={() => handleDeleteComment(comment.id, entry.id)}
-                                  className="text-red-500 hover:text-red-700 transition-colors ml-2"
-                                  title="Delete comment"
-                                  aria-label="Delete comment"
-                                >
-                                  <FaTrash />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex gap-2 mt-2">
+                                {(currentUser && (currentUser.id === comment.user_id || currentUser.id === entry.user_id)) && (
+                                  <button
+                                    onClick={() => handleDeleteComment(comment.id, entry.id)}
+                                    aria-label="Delete comment"
+                                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100 dark:hover:bg-red-950/40"
+                                  >
+                                    <FaTrash className="text-xs" aria-hidden />
+                                  </button>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); handleAddComment(entry.id); }}>
+                          <label htmlFor={`comment-${entry.id}`} className="sr-only">Write a comment</label>
                           <input
+                            id={`comment-${entry.id}`}
                             type="text"
-                            className="flex-1 rounded-full border border-[#A09ABC] px-4 py-2 text-[#6C63A6] bg-white/90 focus:outline-none focus:ring-2 focus:ring-[#A09ABC]/30"
-                            placeholder="Add a comment..."
+                            className="field rounded-full py-2.5"
+                            placeholder="Write a comment"
                             value={commentInputs[entry.id] || ""}
                             onChange={e => setCommentInputs(prev => ({ ...prev, [entry.id]: e.target.value }))}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') handleAddComment(entry.id);
-                            }}
                             disabled={commentLoading[entry.id]}
                           />
-                          <button
-                            onClick={() => handleAddComment(entry.id)}
-                            className="bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white px-4 py-2 rounded-full font-semibold shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition disabled:opacity-50"
-                            disabled={commentLoading[entry.id] || !(commentInputs[entry.id] && commentInputs[entry.id].trim())}
-                          >
+                          <button type="submit" className="btn-primary shrink-0" disabled={commentLoading[entry.id] || !(commentInputs[entry.id] && commentInputs[entry.id].trim())}>
                             Post
                           </button>
-                        </div>
+                        </form>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
+                    </motion.section>
+                  )}
+                </AnimatePresence>
+              </motion.article>
+            );
+          })}
+          </AnimatePresence>
+        </motion.div>
+      )}
 
-      {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xs text-center border border-[#A09ABC]">
-            <div className="text-[#A09ABC] font-semibold mb-4">
-              Delete this comment?
-            </div>
-            <div className="mb-6 text-[#6C63A6] text-sm">
-              Are you sure you want to delete this comment? This action cannot be undone.
-            </div>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 rounded-lg bg-gray-200 text-[#6C63A6] font-semibold shadow hover:bg-gray-300 transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+      <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title="Delete this comment?" style={{ maxWidth: 420 }}>
+        <p className="text-muted">The comment is removed for everyone. This can&apos;t be undone.</p>
+        <div className="mt-7 flex justify-end gap-2">
+          <button onClick={() => setDeleteConfirm(null)} className="btn-ghost">Cancel</button>
+          <button onClick={confirmDelete} className="btn-primary !bg-red-600 !text-white">Delete comment</button>
         </div>
-      )}
+      </Modal>
 
-      {editEntry && (
-        <Modal isOpen={!!editEntry} onClose={() => setEditEntry(null)} title="Edit Journal Entry">
-          <input
-            type="text"
-            placeholder="Entry Title"
-            value={editTitle}
-            onChange={e => setEditTitle(e.target.value)}
-            style={{ width: '100%', borderRadius: 8, padding: 12, border: '1px solid #D5CFE1', color: darkMode ? '#A09ABC' : '#6C63A6', marginBottom: 12, fontSize: 16, background: darkMode ? '#23234a' : '#f8f6fa' }}
-          />
-          <MoodPicker value={editMood} onChange={setEditMood} darkMode={darkMode} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <button
-              style={{ background: darkMode ? '#23234a' : '#f8f6fa', color: '#A09ABC', border: 'none', borderRadius: 6, padding: 8, fontSize: 18, cursor: editUndoStack.length === 0 ? 'not-allowed' : 'pointer', opacity: editUndoStack.length === 0 ? 0.5 : 1 }}
-              onClick={handleEditUndo}
-              type="button"
-              disabled={editUndoStack.length === 0}
-              aria-label="Undo"
-            ><FaUndo /></button>
-            <button
-              style={{ background: darkMode ? '#23234a' : '#f8f6fa', color: '#A09ABC', border: 'none', borderRadius: 6, padding: 8, fontSize: 18, cursor: editRedoStack.length === 0 ? 'not-allowed' : 'pointer', opacity: editRedoStack.length === 0 ? 0.5 : 1 }}
-              onClick={handleEditRedo}
-              type="button"
-              disabled={editRedoStack.length === 0}
-              aria-label="Redo"
-            ><FaRedo /></button>
+      <Modal isOpen={!!editEntry} onClose={() => setEditEntry(null)} title="Edit entry">
+        <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }}>
+          <label htmlFor="edit-title" className="label">Title <span className="font-normal text-muted">(optional)</span></label>
+          <input id="edit-title" type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="field mb-4" />
+          <MoodPicker value={editMood} onChange={setEditMood} />
+          <div className="mb-1.5 flex items-end justify-between">
+            <label htmlFor="edit-body" className="label mb-0">Entry</label>
+            <div className="flex gap-1">
+              <button type="button" onClick={handleEditUndo} disabled={editUndoStack.length === 0} aria-label="Undo" className="flex h-8 w-8 items-center justify-center rounded-full text-sm text-muted transition hover:bg-iris-soft hover:text-iris disabled:opacity-40 disabled:hover:bg-transparent"><FaUndo /></button>
+              <button type="button" onClick={handleEditRedo} disabled={editRedoStack.length === 0} aria-label="Redo" className="flex h-8 w-8 items-center justify-center rounded-full text-sm text-muted transition hover:bg-iris-soft hover:text-iris disabled:opacity-40 disabled:hover:bg-transparent"><FaRedo /></button>
+            </div>
           </div>
-          <textarea
-            ref={editContentRef}
-            value={editContent}
-            onChange={handleEditContentChange}
-            placeholder="Write your thoughts here..."
-            rows={5}
-            style={{ width: '100%', borderRadius: 8, padding: 12, border: '1px solid #D5CFE1', color: darkMode ? '#A09ABC' : '#6C63A6', marginBottom: 16, resize: 'none', fontSize: 16, background: darkMode ? '#23234a' : '#f8f6fa' }}
-          />
-          <button
-            onClick={handleSaveEdit}
-            style={{ width: '100%', padding: '10px 0', borderRadius: 8, background: 'linear-gradient(90deg, #A09ABC 0%, #B6A6CA 100%)', color: '#fff', fontWeight: 600, fontSize: 16, border: 'none', boxShadow: '0 2px 8px #D5CFE1', cursor: 'pointer', opacity: editLoading ? 0.7 : 1 }}
-            disabled={editLoading}
-          >
-            Save Changes
-          </button>
-        </Modal>
-      )}
+          <textarea id="edit-body" ref={editContentRef} value={editContent} onChange={handleEditContentChange} rows={7} className="field resize-y leading-relaxed" />
+          <div className="mt-6 flex justify-end gap-2">
+            <button type="button" onClick={() => setEditEntry(null)} className="btn-ghost">Cancel</button>
+            <button type="submit" disabled={editLoading || !editContent.trim()} className="btn-primary">{editLoading ? 'Saving...' : 'Save changes'}</button>
+          </div>
+        </form>
+      </Modal>
 
-      {deleteEntryId && (
-        <Modal isOpen={!!deleteEntryId} onClose={() => setDeleteEntryId(null)} title="Delete Entry?">
-          <div className="mb-6 text-[#6C63A6] text-sm">
-            Are you sure you want to delete this entry? This action cannot be undone.
-          </div>
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={handleDeleteEntry}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => setDeleteEntryId(null)}
-              className="px-4 py-2 rounded-lg bg-gray-200 text-[#6C63A6] font-semibold shadow hover:bg-gray-300 transition"
-            >
-              Cancel
-            </button>
-          </div>
-        </Modal>
-      )}
-
-    </>
+      <Modal isOpen={!!deleteEntryId} onClose={() => setDeleteEntryId(null)} title="Delete this entry?" style={{ maxWidth: 420 }}>
+        <p className="text-muted">It&apos;s removed from your journal and the feed, along with its likes and comments. This can&apos;t be undone.</p>
+        <div className="mt-7 flex justify-end gap-2">
+          <button onClick={() => setDeleteEntryId(null)} className="btn-ghost">Cancel</button>
+          <button onClick={handleDeleteEntry} className="btn-primary !bg-red-600 !text-white">Delete entry</button>
+        </div>
+      </Modal>
+    </PageShell>
   );
-} 
+}
