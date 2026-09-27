@@ -6,6 +6,8 @@ import { useRouter } from "next/router";
 import { useDarkMode } from "../../components/DarkModeContext";
 import { FaTrash } from "react-icons/fa";
 import { MOODS, MoodIcon, getMood, moodLabel } from "../../components/moods";
+import { localDateKey } from "../../lib/dates";
+import { setMoodForDay } from "../../lib/moodLog";
 
 export default function MoodTracker() {
 const [selectedMood, setSelectedMood] = useState("");
@@ -54,7 +56,8 @@ fetchMoodData();
       router.push("/auth/login");
       return;
     }
-    await supabase.from("moods").insert([{ user_id: user.id, emoji: selectedMood, created_at: new Date().toISOString() }]);
+    // one mood per day: saving again replaces today's mood
+    await setMoodForDay(user.id, localDateKey(), selectedMood);
     setShowAdvice(true);
     setSelectedMood("");
     fetchMoodData();
@@ -89,6 +92,7 @@ return (
                 {/* Emoji Picker (left) */}
                 <div className="flex flex-col flex-1 justify-between">
                   <h3 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>How are you feeling today?</h3>
+                  <p className={`-mt-4 mb-6 text-sm ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>You can log one mood per day. Saving again replaces today's mood.</p>
                   <div className="flex-1 flex items-center justify-center">
                     <div className="flex flex-wrap gap-4 justify-center w-full">
                           {MOODS.map(({ value: mood }) => (
@@ -133,7 +137,7 @@ return (
                         {moodData.map((mood) => (
                           <li key={mood.id} className={`${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-white text-[#6C63A6]'} rounded-xl p-6 flex justify-between items-center text-xl shadow-md`}>
                             <span className="flex items-center gap-3"><MoodIcon value={mood.emoji} className="text-3xl" /><span className="font-semibold">{moodLabel(mood.emoji)}</span></span>
-                            <span className="text-lg">{new Date(mood.created_at).toLocaleString()}</span>
+                            <span className="text-lg">{new Date(mood.created_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
                             <button
                               onClick={() => deleteMood(mood.id)}
                               className="text-red-500 hover:text-red-700 text-lg font-bold flex items-center gap-2"
