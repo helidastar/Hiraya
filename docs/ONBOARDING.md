@@ -95,6 +95,17 @@ npm run build
 
 Every merge into `main` redeploys production. Other branches get preview deployments.
 
+### Keep Supabase awake
+
+Supabase pauses free projects after one week without activity, and the app stops working until the project is restored from the dashboard. The workflow in `.github/workflows/keep-supabase-awake.yml` prevents this by sending one small read-only query every three days. It needs two repository secrets under **Settings → Secrets and variables → Actions**:
+
+| Secret | Value |
+|--------|-------|
+| `SUPABASE_URL` | same as `NEXT_PUBLIC_SUPABASE_URL` |
+| `SUPABASE_ANON_KEY` | same as `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+
+To check it works, open the **Actions** tab, pick **Keep Supabase awake** and click **Run workflow**. GitHub turns off scheduled workflows in repositories with no commits for 60 days, so the workflow re-enables itself on every run. If it ever shows as disabled, re-enable it from the same page.
+
 ## 9. Contributing
 
 Follow the flow in [DOCUMENTATION.md → Branches](DOCUMENTATION.md#branches):
