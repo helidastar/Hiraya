@@ -56,7 +56,7 @@ export default function ResetPassword() {
   return (
     <>
       <Head>
-        <title>Reset Password | Muni</title>
+        <title>Reset Password | Hiraya</title>
       </Head>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#E1D8E9] via-[#B6A6CA] to-[#D4BEBE]">
         <div className="bg-white/60 rounded-2xl shadow-lg p-8 w-full max-w-md border border-white/30">
