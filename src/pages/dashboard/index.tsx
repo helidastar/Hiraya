@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
-import { FaBook, FaTasks, FaRss, FaFire, FaRegSmile, FaCheckCircle, FaPen } from "react-icons/fa";
+import { FaBook, FaStar, FaRss, FaFire, FaRegSmile, FaPen } from "react-icons/fa";
 import { MOODS, MoodIcon, getMood, moodLabel, moodScore, moodTone } from "../../components/moods";
 import { localDateKey, dayBounds } from "../../lib/dates";
 import { setMoodForDay, clearMoodForDay } from "../../lib/moodLog";
@@ -38,8 +38,6 @@ export default function Dashboard() {
   const [monthlyMoods, setMonthlyMoods] = useState<{ [date: string]: string }>({});
 
   // Add state for dashboard mood modal
-  const [dashboardMoodModalOpen, setDashboardMoodModalOpen] = useState(false);
-  const [dashboardSelectedMood, setDashboardSelectedMood] = useState("");
 
   const moodOptions = MOODS.map((m) => m.value);
 
@@ -176,7 +174,7 @@ export default function Dashboard() {
       .order("created_at", { ascending: false })
       .limit(1);
     setRecentJournal(journals && journals[0]);
-    // Fetch latest completed task (include completed_at)
+    // The latest hope that came true (hopes live in the tasks table)
     const { data: tasks } = await supabase
       .from("tasks")
       .select("description, created_at, completed_at")
@@ -251,13 +249,8 @@ export default function Dashboard() {
     setModalOpen(true);
   };
 
-  // 1. Make the 'Update Mood' button always open the emoji picker modal for today's date
-  const handleUpdateMood = () => {
-    const todayStr = localDateKey();
-    setModalDate(todayStr);
-    setModalMood(monthlyMoods[todayStr] || "");
-    setModalOpen(true);
-  };
+  // Today's mood (and a few lines, if wanted) is logged on the check-in page
+  const handleUpdateMood = () => router.push('/dashboard/mood');
 
   const [showTrendsModal, setShowTrendsModal] = useState(false);
 
@@ -311,21 +304,6 @@ export default function Dashboard() {
     setModalOpen(false);
   };
 
-  const handleSaveDashboardMood = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const date = localDateKey();
-    const { error } = await setMoodForDay(user.id, date, dashboardSelectedMood);
-    if (error) {
-      console.error("Error saving dashboard mood:", error);
-      return;
-    }
-    setMonthlyMoods(prev => ({ ...prev, [date]: dashboardSelectedMood }));
-    await fetchMonthlyMoods();
-    await fetchRecentActivity();
-    await calculateStreak();
-    setDashboardMoodModalOpen(false);
-  };
 
   // 4. Mood Consistency chart uses real mood data for the current month
   const moodChartData = Object.entries(monthlyMoods).map(([date, emoji]) => ({
@@ -470,7 +448,7 @@ export default function Dashboard() {
                   onClick={handleUpdateMood}
                   className={todayMood ? 'relative mt-8 self-start rounded-full bg-black/10 px-5 py-2.5 font-semibold transition hover:bg-black/20' : 'btn-primary relative mt-8 self-start'}
                 >
-                  {todayMood ? 'Change mood' : 'Log mood'}
+                  {todayMood ? 'Change mood' : 'Check in'}
                 </button>
               </motion.section>
 
@@ -545,14 +523,14 @@ export default function Dashboard() {
                     ) : <p className="self-center text-muted">No journal entry yet</p>}
                   </li>
                   <li className="flex gap-3">
-                    <span className="icon-badge"><FaCheckCircle /></span>
+                    <span className="icon-badge"><FaStar /></span>
                     {recentTask ? (
-                      <div className="min-w-0"><p className="truncate">Finished <span className="font-semibold">{recentTask.description}</span></p><p className="text-muted">{formatTime(recentTask.completed_at || recentTask.created_at)}</p></div>
-                    ) : <p className="self-center text-muted">No completed task yet</p>}
+                      <div className="min-w-0"><p className="truncate">Came true: <span className="font-semibold">{recentTask.description}</span></p><p className="text-muted">{formatTime(recentTask.completed_at || recentTask.created_at)}</p></div>
+                    ) : <p className="self-center text-muted">No hope has come true yet</p>}
                   </li>
                 </ul>
                 <div className="mt-6 flex gap-2 border-t border-line pt-5">
-                  <button onClick={() => router.push('/dashboard/task')} className="btn-ghost flex-1 px-3 py-2 text-sm"><FaTasks aria-hidden /> Tasks</button>
+                  <button onClick={() => router.push('/dashboard/hopes')} className="btn-ghost flex-1 px-3 py-2 text-sm"><FaStar aria-hidden /> Hopes</button>
                   <button onClick={() => router.push('/feed')} className="btn-ghost flex-1 px-3 py-2 text-sm"><FaRss aria-hidden /> Feed</button>
                 </div>
               </motion.section>
@@ -581,18 +559,6 @@ export default function Dashboard() {
                 <button onClick={closeMoodModal} className="btn-ghost">Cancel</button>
                 <button onClick={saveMoodForDate} disabled={!modalMood} className="btn-primary">Save mood</button>
               </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-      {dashboardMoodModalOpen && (
-        <motion.div key="today-modal" {...backdrop} className={modalShell} onClick={() => setDashboardMoodModalOpen(false)}>
-          <motion.div {...panel} className={`${modalBox} max-w-lg`} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-            <h3 className="mb-6 font-display text-2xl">How are you feeling today?</h3>
-            {moodGrid(dashboardSelectedMood, setDashboardSelectedMood)}
-            <div className="mt-7 flex justify-end gap-2">
-              <button onClick={() => setDashboardMoodModalOpen(false)} className="btn-ghost">Cancel</button>
-              <button onClick={handleSaveDashboardMood} disabled={!dashboardSelectedMood} className="btn-primary">Save mood</button>
             </div>
           </motion.div>
         </motion.div>
