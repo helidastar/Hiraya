@@ -3,9 +3,11 @@ import { supabase } from "../lib/supabaseClient";
 import Sidebar from "../components/Sidebar";
 import Head from "next/head";
 import Image from "next/image";
-import { FaHeart, FaRegHeart, FaShare, FaComment, FaEllipsisH } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaShare, FaComment, FaEllipsisH, FaTrash, FaRegEdit, FaUndo, FaRedo } from "react-icons/fa";
 import { useDarkMode } from "../components/DarkModeContext";
 import Modal from '../components/Modal';
+import MoodPicker from '../components/MoodPicker';
+import { MoodIcon, moodLabel } from '../components/moods';
 
 interface FeedEntry {
   id: string;
@@ -33,25 +35,6 @@ interface Comment {
   user?: { full_name?: string };
 }
 
-const emojiCategories = [
-  { name: 'Smileys', emojis: ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','🥰','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','🙄','😏','😣','😥','😮','🤐','😯','😪','😫','🥱','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','🤑','😲','☹️','🙁','😖','😞','😟','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰','😱','🥵','🥶','😳','🤪','😵','😡','😠','🤬','😷','🤒','🤕','🤢','🤮','🥴','😇','🥳'] },
-  { name: 'Animals', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐽','🐸','🐵','🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷️','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🐘','🦛','🦏','🐪','🐫','🦒','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐕‍🦺','🐈','🐓','🦃','🦚','🦜','🦢','🦩','🕊️','🐇','🦝','🦨','🦡','🦦','🦥','🐁','🐀','🐿️','🦔'] },
-  { name: 'Food', emojis: ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','��','🥒','🌶️','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🥨','🥞','🧇','🧀','🍖','🍗','🥩','🥓','🍔','🍟','🍕','🌭','🥪','🌮','🌯','🫔','🥙','🧆','🥚','🍳','🥘','🍲','🫕','🥣','🥗','🍿','🧈','🧂','🥫','🍱','🍘','🍙','🍚','🍛','🍜','🍝','🍠','🍢','🍣','🍤','🍥','🥮','🍡','🥟','🥠','🥡','🦪','🍦','🍧','🍨','🍩','🍪','🎂','🍰','🧁','🥧','🍫','🍬','🍭','🍮','🍯','🍼','🥛','☕','🫖','🍵','🍶','🍾','🍷','🍸','🍹','🍺','🍻','🥂','🥃','🫗','🥤','🧋','🧃','🧉','🧊','🥢','🍽️','🍴','🥄'] },
-  { name: 'Activities', emojis: ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🥅','🏒','🏑','🏏','🥍','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛷','⛸️','🥌','🛼','🛶','⛵','🚤','🛥️','🛳️','⛴️','🚢','✈️','🛩️','🛫','🛬','🪂','💺','🚁','🚟','🚠','🚡','🛰️','🚀','🛸','🛎️','🧳','⌛','⏳','⌚','⏰','⏱️','⏲️','🕰️','🌡️','🗺️','🧭','🎃','🎄','🎆','🎇','🧨','✨','🎈','🎉','🎊','🎋','🎍','🎎','🎏','🎐','🎑','🧧','🎀','🎁','🎗️','🎟️','🎫','🎖️','🏆','🏅','🥇','🥈','🥉','⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🥅','🏒','🏑','🏏','🥍','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛷','⛸️','🥌','🛼'] },
-  { name: 'Objects', emojis: ['⌚','📱','📲','💻','⌨️','🖥️','🖨️','🖱️','🖲️','🕹️','🗜️','💽','💾','💿','📀','📼','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','🎚️','🎛️','⏱️','⏲️','⏰','🕰️','⌛','⏳','📡','🔋','🔌','💡','🔦','🕯️','🧯','🛢️','💸','💵','💴','💶','💷','💰','💳','🧾','💎','⚖️','🔧','🔨','⚒️','🛠️','⛏️','🔩','⚙️','🗜️','⚗️','🧪','🧫','🧬','🔬','🔭','📡','💉','🩸','💊','🩹','🩺','🚪','🛏️','🛋️','🪑','🚽','🚿','🛁','🪒','🧴','🧷','🧹','🧺','🧻','🧼','🪣','🧽','🧯','🛒','🚬','⚰️','🪦','⚱️','🏺','🕳️','🏔️','⛰️','🌋','🗻','🏕️','🏖️','🏜️','🏝️','🏞️','🏟️','🏛️','🏗️','🧱','🏘️','🏚️','🏠','🏡','🏢','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏭','🏯','🏰','💒','🗼','🗽','⛪','🕌','🛕','🕍','⛩️','🕋','⛲','⛺','🌁','🌃','🏙️','🌄','🌅','🌆','🌇','🌉','♨️','🎠','🎡','🎢','💈','🎪','🛤️','🚂','🚃','🚄','🚅','🚆','🚇','🚈','🚉','🚊','🚋','🚌','🚍','🚎','🚐','🚑','🚒','🚓','🚔','🚕','🚖','🚗','🚘','🚙','🚚','🚛','🚜','🏎️','🏍️','🛵','🦽','🦼','🛺','🚲','🛴','🛹','🛼','🚏','🛣️','🛤️','🛢️','⛽','🚨','🚥','🚦','🛑','🚧','⚓','⛵','🛶','🚤','🛥️','🛳️','⛴️','🚢','✈️','🛩️','🛫','🛬','🪂','💺','🚁','🚟','🚠','🚡','🛰️','🚀','🛸'] },
-  { name: 'Symbols', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅺','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚳','🔞','📵','🚭','❗','❓','❕','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰','♻️','✅','🈯','💹','❇️','✳️','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿','🅿️','🈂️','🛂','🛃','🛄','🛅','🚹','🚺','🚼','🚻','🚮','🎦','📶','🈁','🔣','ℹ️','🔤','🔡','🔠','🆖','🆗','🆙','🆒','🆓','🆕','🆚','🈁','🈂️'] }
-];
-
-// Add a mapping from emoji to mood name
-const moodNameMap: Record<string, string> = {
-  '😐': 'Natural',
-  '😊': 'Happy',
-  '😌': 'Calm',
-  '😥': 'Sad',
-  '🥰': 'Loved',
-  '😪': 'Tired',
-};
-
 export default function Feed() {
   const [collapsed, setCollapsed] = useState(true);
   const [entries, setEntries] = useState<FeedEntry[]>([]);
@@ -73,12 +56,9 @@ export default function Feed() {
   const [editMood, setEditMood] = useState<string | null>(null);
   const [editLoading, setEditLoading] = useState(false);
   const [deleteEntryId, setDeleteEntryId] = useState<string | null>(null);
-  const [editDate, setEditDate] = useState('');
   const [editUndoStack, setEditUndoStack] = useState<string[]>([]);
   const [editRedoStack, setEditRedoStack] = useState<string[]>([]);
   const editContentRef = useRef<HTMLTextAreaElement>(null);
-  const [editEmojiModalOpen, setEditEmojiModalOpen] = useState(false);
-  const [editActiveEmojiCategory, setEditActiveEmojiCategory] = useState(emojiCategories[0].name);
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -104,6 +84,7 @@ export default function Feed() {
             public, 
             user_id,
             profiles:profiles(id, full_name, avatar_url),
+            likes(user_id),
             title
           `)
           .eq("public", true);
@@ -114,7 +95,7 @@ export default function Feed() {
             query = query.order("created_at", { ascending: false });
             break;
           case 'popular':
-            // For now, we'll order by creation date, but you could add a likes_count field
+            // sorted by likes below, newest first as a tiebreaker
             query = query.order("created_at", { ascending: false });
             break;
           default:
@@ -127,14 +108,15 @@ export default function Feed() {
           throw error;
         }
 
-        // Add mock likes data for demonstration
-        const entriesWithLikes = (data || []).map(entry => ({
+        const { data: { user } } = await supabase.auth.getUser();
+        const entriesWithLikes = (data || []).map(({ likes, ...entry }) => ({
           ...entry,
-          likes_count: 0,
-          is_liked: false,
+          likes_count: likes?.length ?? 0,
+          is_liked: !!user && (likes || []).some((l: { user_id: string }) => l.user_id === user.id),
           profiles: Array.isArray(entry.profiles) ? entry.profiles[0] || { id: '', full_name: '', avatar_url: '' } : entry.profiles || { id: '', full_name: '', avatar_url: '' }
         }));
 
+        if (filter === 'popular') entriesWithLikes.sort((a, b) => b.likes_count - a.likes_count);
         setEntries(entriesWithLikes as unknown as FeedEntry[]);
       } catch {
         setError('Failed to load feed');
@@ -170,12 +152,12 @@ export default function Feed() {
   }, [entries]);
 
   const handleLike = async (entryId: string) => {
-    if (!currentUser) {
-      // You could show a login prompt here
-      return;
-    }
+    if (!currentUser) return;
+    const target = entries.find(e => e.id === entryId);
+    if (!target) return;
+    const wasLiked = !!target.is_liked;
 
-    setEntries(prev => prev.map(entry => 
+    const toggle = (list: FeedEntry[]) => list.map(entry =>
       entry.id === entryId 
         ? { 
             ...entry, 
@@ -183,10 +165,14 @@ export default function Feed() {
             likes_count: entry.is_liked ? (entry.likes_count || 1) - 1 : (entry.likes_count || 0) + 1
           }
         : entry
-    ));
+    );
 
-    // Here you would typically update the database
-    // await supabase.from('likes').upsert({...})
+    // Update the UI right away, then undo it if the database call fails
+    setEntries(toggle);
+    const { error } = wasLiked
+      ? await supabase.from('likes').delete().eq('entry_id', entryId).eq('user_id', currentUser.id)
+      : await supabase.from('likes').insert([{ entry_id: entryId, user_id: currentUser.id }]);
+    if (error) setEntries(toggle);
   };
 
   const handleShare = async (entry: FeedEntry) => {
@@ -278,19 +264,6 @@ export default function Feed() {
     setEditUndoStack(u => [...u, editContent]);
     setEditContent(next);
   }
-  function insertEditEmoji(emoji: string) {
-    if (!editContentRef.current) return;
-    const textarea = editContentRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = editContent.slice(0, start);
-    const after = editContent.slice(end);
-    setEditContent(before + emoji + after);
-    setTimeout(() => {
-      textarea.focus();
-      textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-    }, 0);
-  }
 
   // Save edit
   async function handleSaveEdit() {
@@ -321,7 +294,7 @@ export default function Feed() {
   return (
     <>
       <Head>
-        <title>Community Feed | Reflectly</title>
+        <title>Community Feed | Muni</title>
         <meta name="description" content="See public reflections from the community" />
       </Head>
       <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#B6A6CA] to-[#D4BEBE]'}`}>
@@ -331,7 +304,7 @@ export default function Feed() {
             {/* Header */}
             <div className="mb-8">
               <h2 className={`text-4xl font-bold mb-4 font-serif ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>
-                🌍 Community Feed
+                Community Feed
               </h2>
               <p className={`text-lg ${darkMode ? 'text-[#B6A6CA]' : 'text-[#6C63A6]'}`}>
                 Discover inspiring reflections from our community
@@ -371,7 +344,7 @@ export default function Feed() {
               </div>
             ) : entries.length === 0 ? (
               <div className={`rounded-xl p-8 text-center ${darkMode ? 'bg-[#23234a] text-[#B6A6CA]' : 'bg-white/40 text-[#B6A6CA]'} shadow backdrop-blur-md border border-white/30`}>
-                <div className="text-6xl mb-4">📝</div>
+                <FaRegEdit className="text-5xl mb-4 mx-auto" aria-hidden />
                 <h3 className="text-xl font-semibold mb-2">No public entries yet</h3>
                 <p>Be the first to share your reflection with the community!</p>
               </div>
@@ -422,11 +395,12 @@ export default function Feed() {
                       )}
                     </div>
 
-                    {/* Mood emoji and name on the left, replacing the 📝 icon */}
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-2xl">{entry.mood ? entry.mood : '😐'}</span>
-                      <span className="text-base font-medium text-[#B6A6CA]">{moodNameMap[entry.mood ? entry.mood : '😐']}</span>
-                    </div>
+                    {entry.mood && (
+                      <div className="flex items-center gap-2 mb-2 text-[#A09ABC]">
+                        <MoodIcon value={entry.mood} className="text-2xl" />
+                        <span className="text-base font-medium text-[#B6A6CA]">{moodLabel(entry.mood)}</span>
+                      </div>
+                    )}
 
                     {/* Content */}
                     <div className={`whitespace-pre-wrap text-lg leading-relaxed mb-4 ${darkMode ? 'text-[#E1D8E9]' : 'text-[#6C63A6]'}`}>{entry.content}</div>
@@ -485,8 +459,9 @@ export default function Feed() {
                                   onClick={() => handleDeleteComment(comment.id, entry.id)}
                                   className="text-red-500 hover:text-red-700 transition-colors ml-2"
                                   title="Delete comment"
+                                  aria-label="Delete comment"
                                 >
-                                  🗑️
+                                  <FaTrash />
                                 </button>
                               )}
                             </div>
@@ -558,46 +533,22 @@ export default function Feed() {
             onChange={e => setEditTitle(e.target.value)}
             style={{ width: '100%', borderRadius: 8, padding: 12, border: '1px solid #D5CFE1', color: darkMode ? '#A09ABC' : '#6C63A6', marginBottom: 12, fontSize: 16, background: darkMode ? '#23234a' : '#f8f6fa' }}
           />
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-            <input
-              type="date"
-              value={editDate}
-              onChange={e => setEditDate(e.target.value)}
-              style={{ borderRadius: 6, border: '1px solid #D5CFE1', padding: '8px 12px', color: darkMode ? '#A09ABC' : '#6C63A6', background: darkMode ? '#23234a' : '#f8f6fa', fontSize: 15 }}
-            />
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-              {['😐', '😊', '😌', '😥', '🥰', '😪'].map(mood => (
-                <span
-                  key={mood}
-                  style={{ fontSize: 28, cursor: 'pointer', filter: editMood === mood ? 'drop-shadow(0 0 4px #7c3aed)' : 'none', opacity: editMood === mood ? 1 : 0.6 }}
-                  onClick={() => setEditMood(mood)}
-                  title={moodNameMap[mood]}
-                >
-                  {mood}
-                </span>
-              ))}
-            </div>
-          </div>
+          <MoodPicker value={editMood} onChange={setEditMood} darkMode={darkMode} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <button style={{ background: '#A09ABC', color: '#fff', border: 'none', borderRadius: 6, padding: 8, fontWeight: 600, fontSize: 18, cursor: 'pointer' }}>A</button>
-            <button
-              style={{ background: darkMode ? '#23234a' : '#f8f6fa', color: '#A09ABC', border: 'none', borderRadius: 6, padding: 8, fontSize: 18, cursor: 'pointer' }}
-              onClick={() => setEditEmojiModalOpen(true)}
-              type="button"
-            >😊</button>
-            <button style={{ background: darkMode ? '#23234a' : '#f8f6fa', color: '#A09ABC', border: 'none', borderRadius: 6, padding: 8, fontSize: 18, cursor: 'pointer' }}>📝</button>
             <button
               style={{ background: darkMode ? '#23234a' : '#f8f6fa', color: '#A09ABC', border: 'none', borderRadius: 6, padding: 8, fontSize: 18, cursor: editUndoStack.length === 0 ? 'not-allowed' : 'pointer', opacity: editUndoStack.length === 0 ? 0.5 : 1 }}
               onClick={handleEditUndo}
               type="button"
               disabled={editUndoStack.length === 0}
-            >↺</button>
+              aria-label="Undo"
+            ><FaUndo /></button>
             <button
               style={{ background: darkMode ? '#23234a' : '#f8f6fa', color: '#A09ABC', border: 'none', borderRadius: 6, padding: 8, fontSize: 18, cursor: editRedoStack.length === 0 ? 'not-allowed' : 'pointer', opacity: editRedoStack.length === 0 ? 0.5 : 1 }}
               onClick={handleEditRedo}
               type="button"
               disabled={editRedoStack.length === 0}
-            >↻</button>
+              aria-label="Redo"
+            ><FaRedo /></button>
           </div>
           <textarea
             ref={editContentRef}
@@ -639,42 +590,6 @@ export default function Feed() {
         </Modal>
       )}
 
-      {editEmojiModalOpen && (
-        <Modal isOpen={editEmojiModalOpen} onClose={() => setEditEmojiModalOpen(false)} title="Pick an Emoji" style={{ minWidth: 400, maxWidth: 500, background: darkMode ? '#23234a' : undefined }} noBlur={true}>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            {emojiCategories.map(cat => (
-              <button
-                key={cat.name}
-                onClick={() => setEditActiveEmojiCategory(cat.name)}
-                style={{
-                  background: editActiveEmojiCategory === cat.name ? '#A09ABC' : (darkMode ? '#23234a' : '#f8f6fa'),
-                  color: editActiveEmojiCategory === cat.name ? '#fff' : '#A09ABC',
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '6px 14px',
-                  fontWeight: 600,
-                  fontSize: 16,
-                  cursor: 'pointer',
-                  boxShadow: editActiveEmojiCategory === cat.name ? '0 2px 8px #D5CFE1' : 'none',
-                }}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-          <div style={{ maxHeight: 300, overflowY: 'auto', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {emojiCategories.find(cat => cat.name === editActiveEmojiCategory)?.emojis.map(emoji => (
-              <span
-                key={emoji}
-                style={{ fontSize: 28, cursor: 'pointer' }}
-                onClick={() => { insertEditEmoji(emoji); setEditEmojiModalOpen(false); }}
-              >
-                {emoji}
-              </span>
-            ))}
-          </div>
-        </Modal>
-      )}
     </>
   );
 } 

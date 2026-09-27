@@ -6,6 +6,7 @@ import Head from "next/head";
 import { useDarkMode } from "../../components/DarkModeContext";
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/router';
+import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
 
 type JournalEntry = {
 id: string;
@@ -165,12 +166,16 @@ setNewHeaderFile(null);
 setTimeout(() => setProfileSuccess(false), 3000);
 }
 
-  // Handler for Delete Account (placeholder)
-  const handleDeleteAccount = () => {
-    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      // TODO: Add backend logic for account deletion
-      alert("Account deletion is not implemented yet.");
+  // Deletes the account and all its data (supabase/migrations/*_delete_own_account.sql).
+  // The confirm modal below is the confirmation step.
+  const handleDeleteAccount = async () => {
+    const { error } = await supabase.rpc('delete_own_account');
+    if (error) {
+      setProfileError('Failed to delete account: ' + error.message);
+      return;
     }
+    await supabase.auth.signOut();
+    router.push('/auth/signup');
   };
 
 
@@ -185,7 +190,7 @@ function handleCancelEdit() {
 return (
 <div className={`relative min-h-screen w-full flex animate-gradient-bg overflow-hidden ${darkMode ? 'bg-[#1a1a2e]' : ''}`}>
 <Head>
-<title>Account | Reflectly</title>
+<title>Account | Muni</title>
 </Head>
 {/* Sidebar */}
 <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -203,11 +208,6 @@ return (
 <ellipse cx="120" cy="30" rx="40" ry="12" fill="#D5CFE1" />
 </svg>
 </div>
-{/* Twinkling Stars */}
-<div className="absolute left-1/3 top-1/4 text-[#fff] text-2xl opacity-80 z-0 animate-twinkle">✦</div>
-<div className="absolute right-1/4 bottom-1/3 text-[#fff] text-xl opacity-60 z-0 animate-twinkle">✧</div>
-<div className="absolute left-1/4 bottom-1/4 text-[#fff] text-lg opacity-40 z-0 animate-twinkle" style={{ animationDelay: "1s" }}>✦</div>
-<div className="absolute left-1/2 top-1/6 text-[#fff] text-lg opacity-60 z-0 animate-twinkle" style={{ animationDelay: "2s" }}>✦</div>
 {/* Main Content */}
 <main className={`flex min-h-screen w-full items-center justify-center ${darkMode ? 'bg-gradient-to-br from-[#1a1a2e] via-[#23234a] to-[#23234a]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#B6A6CA] to-[#B6A6CA]'} ${darkMode ? 'dark' : ''}`}>
   <div className={`max-w-xl w-full rounded-3xl shadow-2xl p-12 flex flex-col items-center justify-center relative mx-auto transition-colors duration-300 ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : 'bg-gradient-to-b from-orange-100 to-purple-200 text-gray-800'}`}>
@@ -334,13 +334,13 @@ return (
           <input type="text" placeholder="Instagram URL" value={socialLinks.instagram} onChange={e => setSocialLinks({ ...socialLinks, instagram: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
           <input type="text" placeholder="Twitter URL" value={socialLinks.twitter} onChange={e => setSocialLinks({ ...socialLinks, twitter: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
           <input type="text" placeholder="GitHub URL" value={socialLinks.github} onChange={e => setSocialLinks({ ...socialLinks, github: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
-          <input type="text" placeholder="Reflectly URL" value={socialLinks.reflectly} onChange={e => setSocialLinks({ ...socialLinks, reflectly: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
+          <input type="text" placeholder="Muni URL" value={socialLinks.reflectly} onChange={e => setSocialLinks({ ...socialLinks, reflectly: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
         </div>
       ) : null}
       <div className="flex flex-row gap-6 justify-center">
         <a href={socialLinks.facebook || '#'} title="Facebook" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.facebook ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/facebook.png" alt="Facebook" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
         <a href={socialLinks.instagram || '#'} title="Instagram" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.instagram ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/instagram.png" alt="Instagram" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
-        <a href={socialLinks.reflectly || '#'} title="Reflectly" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.reflectly ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/reflectly.png" alt="Reflectly" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
+        <a href={socialLinks.reflectly || '#'} title="Muni" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.reflectly ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/reflectly.png" alt="Muni" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
         <a href={socialLinks.github || '#'} title="GitHub" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.github ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/github.png" alt="GitHub" className="w-9 h-9 rounded-full shadow-md object-cover bg-white p-1" /> </a>
         <a href={socialLinks.twitter || '#'} title="Twitter" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.twitter ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/twitter.png" alt="Twitter" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
       </div>
@@ -424,7 +424,7 @@ return (
       style={{animation: 'fadeInOut 2.5s'}}
     >
       <span className="text-2xl">
-        {notificationType === 'success' ? '✓' : '⚠️'}
+        {notificationType === 'success' ? <FaCheckCircle /> : <FaExclamationTriangle />}
       </span>
       <span className="font-medium text-sm break-words">{notificationMsg}</span>
     </div>

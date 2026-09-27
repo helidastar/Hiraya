@@ -30,7 +30,7 @@ export default function Logout() {
       style={{ cursor: 'default' }}
     >
       <Head>
-        <title>Logout | Reflectly</title>
+        <title>Logout | Muni</title>
         <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
       </Head>
       {/* Animated Moon */}
@@ -54,11 +54,6 @@ export default function Logout() {
           <ellipse cx="120" cy="30" rx="40" ry="12" fill="#D5CFE1" />
         </svg>
       </div>
-      {/* Twinkling Stars */}
-      <div className="absolute left-1/3 top-1/4 text-[#fff] text-2xl opacity-80 z-0 animate-twinkle">✦</div>
-      <div className="absolute right-1/4 bottom-1/3 text-[#fff] text-xl opacity-60 z-0 animate-twinkle">✧</div>
-      <div className="absolute left-1/4 bottom-1/4 text-[#fff] text-lg opacity-40 z-0 animate-twinkle" style={{ animationDelay: '1s' }}>✦</div>
-      <div className="absolute left-1/2 top-1/6 text-[#fff] text-lg opacity-60 z-0 animate-twinkle" style={{ animationDelay: '2s' }}>✦</div>
       {/* Main content with glassmorphism - perfectly centered */}
       <div className={`relative z-20 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-6 py-12 bg-white/20 rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-700 ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ minHeight: '340px' }}>
         <div className="flex flex-col items-center mb-6">

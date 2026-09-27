@@ -81,15 +81,17 @@ export default function Signup() {
         return;
       }
 
-      // If user was created but not yet confirmed
-      if (data.user && !data.user.confirmed_at) {
+      // With email confirmation on, Supabase hides existing accounts by returning
+      // a user with no identities instead of an error.
+      if (data.user && data.user.identities?.length === 0) {
         setError("This email is already registered. Please use another email or sign in.");
         setLoading(false);
         return;
       }
 
-      // If user was created successfully and confirmed, create the profile
-      if (data.user) {
+      // Only create the profile now if we already have a session. Otherwise
+      // login creates it after the email is confirmed.
+      if (data.user && data.session) {
         await supabase
           .from("profiles")
           .insert([
@@ -114,7 +116,7 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden">
       <Head>
-        <title>{error ? `Error: ${error}` : "Sign Up | Reflectly"}</title>
+        <title>{error ? `Error: ${error}` : "Sign Up | Muni"}</title>
       </Head>
       {/* Animated Background */}
       <div
@@ -221,9 +223,6 @@ export default function Signup() {
               <path d="M60 50v-8a8 8 0 1 1 16 0v8" stroke="#6C63A6" strokeWidth="2" fill="none" />
             </svg>
           </motion.div>
-          {/* Sparkles */}
-          <motion.div className="absolute left-2 top-2 text-[#A09ABC] text-xs md:text-lg opacity-70" animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}>✦</motion.div>
-          <motion.div className="absolute right-2 bottom-2 text-[#B6A6CA] text-xs md:text-lg opacity-60" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>✧</motion.div>
         </div>
       </div>
       <LegalModal open={showTerms} onClose={() => setShowTerms(false)} title="Terms of Service">

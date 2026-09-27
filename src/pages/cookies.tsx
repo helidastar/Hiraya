@@ -5,7 +5,7 @@ const CookiesPolicy = () => (
     <h1>Cookies Policy</h1>
     <p><strong>Last updated:</strong> July 7, 2025</p>
     <p>
-      This Cookies Policy explains what cookies are and how we use them on the ZAMDevs app.
+      This Cookies Policy explains what cookies are and how we use them on the Muni app.
     </p>
     <h2>What are cookies?</h2>
     <p>

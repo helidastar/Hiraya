@@ -23,7 +23,7 @@ export default function Home() {
   return (
     <div className="w-full min-h-screen relative overflow-hidden">
       <Head>
-        <title>Welcome | Reflectly</title>
+        <title>Welcome | Muni</title>
         {/* Font link moved to _document.tsx */}
       </Head>
       {/* Animated Background */}
@@ -63,27 +63,6 @@ export default function Home() {
           <rect x="22" y="4" width="6" height="8" rx="2" fill="#E1D8E9"/>
         </svg>
       </motion.div>
-      {/* Twinkling Stars */}
-      <motion.div
-        className="absolute left-1/3 top-1/4 text-[#fff] text-2xl opacity-80 z-0"
-        animate={{ opacity: [0.7, 1, 0.7] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-      >✦</motion.div>
-      <motion.div
-        className="absolute right-1/4 bottom-1/3 text-[#fff] text-xl opacity-60 z-0"
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      >✧</motion.div>
-      <motion.div
-        className="absolute left-1/4 bottom-1/4 text-[#fff] text-lg opacity-40 z-0"
-        animate={{ opacity: [0.3, 0.7, 0.3] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      >✦</motion.div>
-      <motion.div
-        className="absolute left-1/2 top-1/6 text-[#fff] text-lg opacity-60 z-0"
-        animate={{ opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-      >✦</motion.div>
       {/* Floating Cloud (extra) */}
       <motion.div
         className="absolute left-1/2 bottom-10 w-32 h-16 bg-white rounded-full opacity-30 z-0"
@@ -135,7 +114,7 @@ export default function Home() {
                 transition={{ duration: 1, ease: "easeOut" }}
               >
                 <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#A09ABC] mb-4 drop-shadow" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                  Welcome to Reflectly
+                  Welcome to Muni
                 </h1>
                 <p className="mb-8 text-lg text-[#A09ABC] text-center" style={{ fontFamily: 'DM Serif Display, serif' }}>
                   Click the button below to begin your journey
@@ -167,10 +146,10 @@ export default function Home() {
                 transition={{ duration: 1, ease: "easeOut" }}
               >
                 <h2 className="font-serif text-3xl md:text-4xl font-bold text-[#A09ABC] mb-4" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                  About Reflectly
+                  About Muni
                 </h2>
                 <p className="mb-8 text-lg text-[#A09ABC] text-center" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                  Reflectly is your personal mindfulness companion. This journaling app helps you reflect, grow, and stay in tune with your emotions. You can write daily entries, tag how you feel, and look back on your past reflections in a calm and clutter-free space. Whether you&#39;re having a great day or facing challenges, Reflectly gives you a safe and private place to understand your thoughts and build emotional strength. It&#39;s simple, serene, and designed to support your journey every step of the way.
+                  Muni is your personal mindfulness companion. This journaling app helps you reflect, grow, and stay in tune with your emotions. You can write daily entries, tag how you feel, and look back on your past reflections in a calm and clutter-free space. Whether you&#39;re having a great day or facing challenges, Muni gives you a safe and private place to understand your thoughts and build emotional strength. It&#39;s simple, serene, and designed to support your journey every step of the way.
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.08 }}
@@ -279,24 +258,19 @@ function FeatureToggle({ nextSlide, prevSlide }: { nextSlide: () => void; prevSl
   return (
     <div className="w-full flex flex-col items-center">
       <div className="flex flex-col items-center mb-4">
-        <span className="text-4xl mb-2">🌟</span>
         <p className="text-[#A09ABC] text-lg text-center font-serif italic mb-2">
-          Explore what makes Reflectly magical!
+          Everything Muni can do
         </p>
       </div>
-      <ul className="text-[#6C63A6] text-lg mt-2 space-y-3 text-left list-none w-full max-w-xl mx-auto">
-        <li>📝 <b>Easy Journaling:</b> Create, edit, and delete daily journal entries with ease</li>
-        <li>😊 <b>Mood Tagging:</b> Intuitive emoji or slider system for your feelings</li>
-        <li>📅 <b>Calendar View:</b> Interactive calendar for mood and entry history tracking</li>
-        <li>🌗 <b>Minimalist UI:</b> Light and dark mode options for every mood</li>
-        <li>⏰ <b>Smart Reminders:</b> Encourages consistent journaling habits</li>
-        <li>📎 <b>Media Attachments:</b> Add photos, SocialLinks, and more to your entries</li>
-        <li>📡 <b>Offline Access:</b> Journal anywhere, anytime—no internet needed</li>
-        <li>⏳ <b>Time Capsule:</b> Schedule future resurfacing of special entries</li>
-        <li>🔗 <b>Cross-Platform Sync:</b> Seamless access on web, and desktop</li>
-        <li>📊 <b>Mood Analytics:</b> Visualize your emotional patterns over time</li>
-        <li>🌍 <b>Public Journaling:</b> Share select entries with the world to inspire and connect</li>
-        <li>🔒 <b>Private Thoughts:</b> Keep entries just for you—safe, secure, and personal</li>
+      <ul className="text-[#6C63A6] text-lg mt-2 space-y-3 text-left list-disc pl-6 w-full max-w-xl mx-auto">
+        <li><b>Easy Journaling:</b> Create, edit, and delete daily journal entries with ease</li>
+        <li><b>Mood Tagging:</b> Tag each day and entry with how you feel</li>
+        <li><b>Calendar View:</b> Interactive calendar for mood and entry history tracking</li>
+        <li><b>Minimalist UI:</b> Light and dark mode options for every mood</li>
+        <li><b>Task Board:</b> Drag-and-drop to-do, in progress and done columns</li>
+        <li><b>Mood Analytics:</b> Visualize your emotional patterns over time</li>
+        <li><b>Public Journaling:</b> Share select entries with the world to inspire and connect</li>
+        <li><b>Private Thoughts:</b> Keep entries just for you—safe, secure, and personal</li>
       </ul>
       <button
         onClick={nextSlide}

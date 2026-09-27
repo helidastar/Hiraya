@@ -1,4 +1,4 @@
-// 📄 /pages/dashboard/analytics.tsx
+// /pages/dashboard/analytics.tsx
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
@@ -6,6 +6,9 @@ import Sidebar from "../../components/Sidebar";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useDarkMode } from "../../components/DarkModeContext";
+import { FaCalendarDay, FaChartLine, FaCalendarAlt, FaStar } from "react-icons/fa";
+import { getMood, moodLabel, moodScore } from "../../components/moods";
+import { localDateKey } from "../../lib/dates";
 import {
   XAxis,
   YAxis,
@@ -24,34 +27,6 @@ export default function Analytics() {
   const router = useRouter();
   const { darkMode } = useDarkMode();
 
-  // Add mood label and score maps (copy from dashboard)
-  const moodLabelMap: { [key: string]: string } = {
-    "😁": "Very Happy",
-    "🙂": "Happy",
-    "��": "Neutral",
-    "😔": "Sad",
-    "😢": "Crying",
-    "😡": "Angry",
-    "😴": "Sleepy",
-    "😍": "In Love",
-    "😇": "Blessed",
-    "😂": "Laughing",
-    "😅": "Relieved",
-    "😉": "Winking",
-    "😜": "Playful",
-    "🥳": "Celebrating",
-    "😎": "Cool",
-    "🥺": "Pleading",
-    "😭": "Sobbing",
-    "😘": "Kissing",
-    "😳": "Embarrassed"
-  };
-  const moodScoreMap: { [key: string]: number } = {
-    "😁": 5, "🙂": 4, "😐": 3, "😔": 2, "😢": 1,
-    "😡": 1, "😴": 2, "😍": 5, "😇": 5, "😂": 5,
-    "😅": 4, "😉": 4, "😜": 4, "🥳": 5, "😎": 5,
-    "🥺": 2, "😭": 1, "😘": 5, "😳": 3
-  };
 
   // Generate random stars for dark mode decoration
   const generateStars = () => {
@@ -86,7 +61,7 @@ export default function Analytics() {
         .from("moods")
         .select("created_at, emoji")
         .eq("user_id", session.user.id);
-      setMoodDetails((moods || []).map(m => ({ date: m.created_at.split('T')[0], emoji: m.emoji })));
+      setMoodDetails((moods || []).map(m => ({ date: localDateKey(m.created_at), emoji: m.emoji })));
       // Fetch moods
       const { data: moodsGrouped } = await supabase
         .from("moods")
@@ -128,15 +103,15 @@ export default function Analytics() {
 
   // Helper to get mood stats for a date range
   function getMoodStatsForRange(moods: { date: string; emoji: string }[], start: Date, end: Date) {
-    const filtered = moods.filter(m => {
-      const d = new Date(m.date);
-      return d >= start && d <= end;
-    });
+    // compare yyyy-mm-dd keys so whole local days are included
+    const from = localDateKey(start);
+    const to = localDateKey(end);
+    const filtered = moods.filter(m => m.date >= from && m.date <= to);
     if (filtered.length === 0) return null;
-    const scores = filtered.map(m => moodScoreMap[m.emoji] ?? 3);
+    const scores = filtered.map(m => moodScore(m.emoji));
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
     const freq: Record<string, number> = {};
-    filtered.forEach(m => { freq[m.emoji] = (freq[m.emoji] || 0) + 1; });
+    filtered.forEach(m => { const key = getMood(m.emoji)?.value ?? m.emoji; freq[key] = (freq[key] || 0) + 1; });
     const mostCommon = Object.keys(freq).reduce((a, b) => freq[a] > freq[b] ? a : b);
     return {
       avg,
@@ -156,7 +131,7 @@ export default function Analytics() {
   return (
     <>
       <Head>
-        <title>Analytics Dashboard - Reflectly</title>
+        <title>Analytics Dashboard - Muni</title>
         <meta name="description" content="Mood and Journal Analytics" />
       </Head>
       <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`} style={{ position: 'relative' }}>
@@ -185,12 +160,12 @@ export default function Analytics() {
         <main className={`flex-1 p-4 md:p-10 min-h-screen transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`}>
           <div className="w-full flex justify-center">
             <div className="w-full max-w-6xl">
-              <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>📊 Analytics Dashboard</h2>
+              <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-[#A09ABC]' : 'text-[#A09ABC]'}`}>Analytics Dashboard</h2>
               {/* Main Chart Card */}
               <div className={`bg-white/60 dark:bg-[#23234a] rounded-3xl shadow-lg border border-white/30 dark:border-[#23234a] p-8 mb-10`}>
                 <h3 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>Mood Trends & Journal Analytics</h3>
                 {combinedData.length === 0 ? (
-                  <div className={`text-center py-8 ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>No data yet. Start tracking your moods and journals! 📈</div>
+                  <div className={`text-center py-8 ${darkMode ? 'text-[#A09ABC]' : 'text-[#6C63A6]'}`}>No data yet. Start tracking your moods and journals.</div>
                 ) : (
                   <ResponsiveContainer width="100%" height={320}>
                     <AreaChart data={combinedData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
@@ -243,17 +218,16 @@ export default function Analytics() {
                 {/* Today */}
                 {(() => {
                   const today = new Date();
-                  const todayStr = today.toISOString().split('T')[0];
                   const daily = getMoodStatsForRange(moodDetails, today, today);
                   return (
                     <div className="p-5 rounded-xl bg-[#F3F0F9] shadow flex flex-col h-full border-2 border-[#A09ABC]/20">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">📅</span>
+                        <FaCalendarDay className="text-xl text-[#A09ABC]" aria-hidden />
                         <span className="font-bold text-lg text-[#A09ABC]">Today</span>
                       </div>
-                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{daily ? daily.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{daily ? '(' + (moodLabelMap[daily.mostCommon] || daily.mostCommon) + ')' : ''}</span></div>
+                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{daily ? daily.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{daily ? '(' + moodLabel(daily.mostCommon) + ')' : ''}</span></div>
                       <div className="mb-1 text-[#6C63A6]">Avg Mood</div>
-                      <div className="text-lg font-semibold">{daily ? (moodLabelMap[daily.mostCommon] + ' ' + daily.mostCommon) : 'N/A'}</div>
+                      <div className="text-lg font-semibold">{daily ? moodLabel(daily.mostCommon) : 'N/A'}</div>
                       <div className="mb-1 text-[#6C63A6]">Most Common Mood</div>
                       <div className="text-lg font-semibold">{daily ? daily.count : 0}</div>
                       <div className="text-[#6C63A6]">Entries</div>
@@ -269,12 +243,12 @@ export default function Analytics() {
                   return (
                     <div className="p-5 rounded-xl bg-[#F3F0F9] shadow flex flex-col h-full border-2 border-[#A09ABC]/20">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">📈</span>
+                        <FaChartLine className="text-xl text-[#A09ABC]" aria-hidden />
                         <span className="font-bold text-lg text-[#A09ABC]">This Week</span>
                       </div>
-                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{weekly ? weekly.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{weekly ? '(' + (moodLabelMap[weekly.mostCommon] || weekly.mostCommon) + ')' : ''}</span></div>
+                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{weekly ? weekly.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{weekly ? '(' + moodLabel(weekly.mostCommon) + ')' : ''}</span></div>
                       <div className="mb-1 text-[#6C63A6]">Avg Mood</div>
-                      <div className="text-lg font-semibold">{weekly ? (moodLabelMap[weekly.mostCommon] + ' ' + weekly.mostCommon) : 'N/A'}</div>
+                      <div className="text-lg font-semibold">{weekly ? moodLabel(weekly.mostCommon) : 'N/A'}</div>
                       <div className="mb-1 text-[#6C63A6]">Most Common Mood</div>
                       <div className="text-lg font-semibold">{weekly ? weekly.count : 0}</div>
                       <div className="text-[#6C63A6]">Entries</div>
@@ -289,12 +263,12 @@ export default function Analytics() {
                   return (
                     <div className="p-5 rounded-xl bg-[#F3F0F9] shadow flex flex-col h-full border-2 border-[#A09ABC]/20">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">🗓️</span>
+                        <FaCalendarAlt className="text-xl text-[#A09ABC]" aria-hidden />
                         <span className="font-bold text-lg text-[#A09ABC]">This Month</span>
                       </div>
-                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{monthly ? monthly.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{monthly ? '(' + (moodLabelMap[monthly.mostCommon] || monthly.mostCommon) + ')' : ''}</span></div>
+                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{monthly ? monthly.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{monthly ? '(' + moodLabel(monthly.mostCommon) + ')' : ''}</span></div>
                       <div className="mb-1 text-[#6C63A6]">Avg Mood</div>
-                      <div className="text-lg font-semibold">{monthly ? (moodLabelMap[monthly.mostCommon] + ' ' + monthly.mostCommon) : 'N/A'}</div>
+                      <div className="text-lg font-semibold">{monthly ? moodLabel(monthly.mostCommon) : 'N/A'}</div>
                       <div className="mb-1 text-[#6C63A6]">Most Common Mood</div>
                       <div className="text-lg font-semibold">{monthly ? monthly.count : 0}</div>
                       <div className="text-[#6C63A6]">Entries</div>
@@ -306,19 +280,19 @@ export default function Analytics() {
                   const overall = getMoodStatsForRange(moodDetails, new Date('2000-01-01'), new Date());
                   let message = '';
                   if (overall) {
-                    if (overall.avg >= 4) message = "You're doing great! Keep up the positive vibes! 🎉";
-                    else if (overall.avg >= 3) message = "Your mood is balanced. Remember to take care of yourself! 😊";
-                    else message = "It's okay to have tough days. Take care and reach out if you need support. 💜";
+                    if (overall.avg >= 4) message = "You're doing great! Keep up the positive energy.";
+                    else if (overall.avg >= 3) message = "Your mood is balanced. Remember to take care of yourself.";
+                    else message = "It's okay to have tough days. Take care and reach out if you need support.";
                   }
                   return (
                     <div className="p-5 rounded-xl bg-[#E1D8E9] shadow flex flex-col h-full border-2 border-[#A09ABC]">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">🌟</span>
+                        <FaStar className="text-xl text-[#A09ABC]" aria-hidden />
                         <span className="font-bold text-lg text-[#A09ABC]">Overall</span>
                       </div>
-                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{overall ? overall.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{overall ? '(' + (moodLabelMap[overall.mostCommon] || overall.mostCommon) + ')' : ''}</span></div>
+                      <div className="mt-2 text-xl font-bold text-[#A09ABC]">{overall ? overall.avg.toFixed(2) : 'N/A'} <span className="text-base font-normal">{overall ? '(' + moodLabel(overall.mostCommon) + ')' : ''}</span></div>
                       <div className="mb-1 text-[#6C63A6]">Avg Mood</div>
-                      <div className="text-lg font-semibold">{overall ? (moodLabelMap[overall.mostCommon] + ' ' + overall.mostCommon) : 'N/A'}</div>
+                      <div className="text-lg font-semibold">{overall ? moodLabel(overall.mostCommon) : 'N/A'}</div>
                       <div className="mb-1 text-[#6C63A6]">Most Common Mood</div>
                       <div className="text-lg font-semibold">{overall ? overall.count : 0}</div>
                       <div className="text-[#6C63A6]">Entries</div>

@@ -40,7 +40,7 @@ export default function Sidebar({ collapsed, setCollapsed }: { collapsed?: boole
         )}
         <div className="flex items-center gap-3 mb-10">
           <Image src="/pictures/logo.png" alt="Logo" width={38} height={38} />
-          {(!collapsed || typeof collapsed !== 'boolean') && <span className={`font-serif text-2xl font-bold tracking-wider drop-shadow ${darkMode ? 'text-[#A09ABC]' : 'text-white'}`}>Reflectly</span>}
+          {(!collapsed || typeof collapsed !== 'boolean') && <span className={`font-serif text-2xl font-bold tracking-wider drop-shadow ${darkMode ? 'text-[#A09ABC]' : 'text-white'}`}>Muni</span>}
         </div>
         <ul className="flex-1 space-y-2">
           {menuItems.map((item) => (
