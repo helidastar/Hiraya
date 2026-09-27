@@ -1,0 +1,47 @@
+# Supabase pauses free projects after a week without activity, which stops
+# login, the journal and the feed. This sends one small read-only query every
+# three days so the project never sits idle that long.
+#
+# Needs two repository secrets (Settings > Secrets and variables > Actions):
+#   SUPABASE_URL       same value as NEXT_PUBLIC_SUPABASE_URL
+#   SUPABASE_ANON_KEY  same value as NEXT_PUBLIC_SUPABASE_ANON_KEY
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: "0 3 */3 * *" # 03:00 UTC every third day
+  workflow_dispatch: # lets you run it by hand from the Actions tab
+
+permissions:
+  actions: write # only to re-enable this workflow, see the last step
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Query the database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Add the SUPABASE_URL and SUPABASE_ANON_KEY repository secrets."
+            exit 1
+          fi
+          # Row level security returns no rows to the anon key, but the query
+          # still reaches Postgres, which counts as activity
+          curl --fail --silent --show-error --max-time 30 \
+            "$SUPABASE_URL/rest/v1/journal?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY"
+          echo
+          echo "Supabase answered at $(date -u)"
+
+      # GitHub turns off scheduled workflows after 60 days without commits.
+      # A portfolio repo can easily go that long, so re-enable this workflow
+      # on every run to keep the schedule alive.
+      - name: Keep this schedule enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow enable keep-supabase-awake.yml --repo "$GITHUB_REPOSITORY"
