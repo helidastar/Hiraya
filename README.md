@@ -78,7 +78,7 @@ Muni was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/ZAM
 
 | Name | GitHub |
 |------|--------|
-| Charity Ricabo (maintainer) | [@helidastar](https://github.com/helidastar) |
+| Charity Ricabo | [@helidastar](https://github.com/helidastar) |
 | Aleyah Jose | [@marshmallowdevz](https://github.com/marshmallowdevz) |
 | Maria Mhikyla Jayno | [@mhiksNmatch](https://github.com/mhiksNmatch) |
 | Zana Capao | [@zanacapao](https://github.com/zanacapao) |
