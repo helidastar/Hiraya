@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
-import { FaBook, FaTasks, FaRss } from "react-icons/fa";
+import { FaBook, FaTasks, FaRss, FaFire, FaRegSmile, FaCheckCircle } from "react-icons/fa";
+import { MOODS, MoodIcon, moodLabel, moodScore } from "../../components/moods";
 import Sidebar from "../../components/Sidebar";
 import { supabase } from "../../lib/supabaseClient";
 import { useDarkMode } from "../../components/DarkModeContext";
@@ -35,12 +36,7 @@ export default function Dashboard() {
   const [dashboardMoodModalOpen, setDashboardMoodModalOpen] = useState(false);
   const [dashboardSelectedMood, setDashboardSelectedMood] = useState("");
 
-  const moodOptions = [
-    "😁", "🙂", "😐", "😔", "😢",
-    "😡", "😴", "😍", "😇", "😂",
-    "😅", "😉", "😜", "🥳", "😎",
-    "🥺", "😭", "😘", "😍", "😳"
-  ];
+  const moodOptions = MOODS.map((m) => m.value);
 
   const motivationalQuotes = [
     "Keep going, you’re doing great!",
@@ -79,37 +75,6 @@ export default function Dashboard() {
       });
     }
     setMonthlyMoods(moodsMap);
-  };
-
-  // Remove duplicate moodLabelMap and merge all emoji labels into one object
-  const moodLabelMap: { [key: string]: string } = {
-    "😁": "Very Happy",
-    "🙂": "Happy",
-    "😐": "Neutral",
-    "😔": "Sad",
-    "😢": "Crying",
-    "😡": "Angry",
-    "😴": "Sleepy",
-    "😍": "In Love",
-    "😇": "Blessed",
-    "😂": "Laughing",
-    "😅": "Relieved",
-    "😉": "Winking",
-    "😜": "Playful",
-    "🥳": "Celebrating",
-    "😎": "Cool",
-    "🥺": "Pleading",
-    "😭": "Sobbing",
-    "😘": "Kissing",
-    "😳": "Embarrassed"
-  };
-
-  // Add mood score mapping for mood consistency chart
-  const moodScoreMap: { [key: string]: number } = {
-    "😁": 5, "🙂": 4, "😐": 3, "😔": 2, "😢": 1,
-    "😡": 1, "😴": 2, "😍": 5, "😇": 5, "😂": 5,
-    "😅": 4, "😉": 4, "😜": 4, "🥳": 5, "😎": 5,
-    "🥺": 2, "😭": 1, "😘": 5, "😳": 3
   };
 
   // Add format time function
@@ -244,16 +209,16 @@ export default function Dashboard() {
     if (i < firstDayOfWeek || day > daysInMonth) {
       calendarCells.push(<div key={`empty-${i}`}></div>);
     } else {
-      const emoji = monthlyMoods[dateStr] || "😊";
+      const emoji = monthlyMoods[dateStr];
       const faded = !monthlyMoods[dateStr];
       calendarCells.push(
         <div
           key={dateStr}
           className={`text-2xl text-center cursor-pointer select-none transition hover:scale-110 ${faded ? 'opacity-30' : ''}`}
           onClick={() => openMoodModal(dateStr)}
-          title={`Set mood for ${dateStr}`}
+          title={emoji ? `${dateStr}: ${moodLabel(emoji)}` : `Set mood for ${dateStr}`}
         >
-          <span>{emoji}</span>
+          <MoodIcon value={emoji} className="mx-auto" />
         </div>
       );
     }
@@ -371,8 +336,8 @@ export default function Dashboard() {
   const moodChartData = Object.entries(monthlyMoods).map(([date, emoji]) => ({
     date,
     entries: 1,
-    moods: moodScoreMap[emoji] ?? 3, // Default to neutral if not found
-    label: moodLabelMap[emoji] || emoji,
+    moods: moodScore(emoji), // Default to neutral if not found
+    label: moodLabel(emoji),
   }));
 
   // In the chart, add a custom tooltip to show the mood label
@@ -396,15 +361,15 @@ export default function Dashboard() {
 
   // Update getMoodStats to return avg as a number and bestDay/worstDay as [string, string]
   const getMoodStats = () => {
-    const scores = Object.values(monthlyMoods).map(emoji => moodScoreMap[emoji] ?? 3);
+    const scores = Object.values(monthlyMoods).map(emoji => moodScore(emoji));
     if (scores.length === 0) return null;
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
     const moodsArr = Object.values(monthlyMoods);
     const freq = moodsArr.reduce((acc: Record<string, number>, m) => { acc[m] = (acc[m] || 0) + 1; return acc; }, {});
     const mostCommon = Object.keys(freq).reduce((a, b) => freq[a] > freq[b] ? a : b, Object.keys(freq)[0] || "");
     const entries = Object.entries(monthlyMoods);
-    const bestDayEntry = entries.length > 0 ? entries.reduce<[string, string]>((a, b) => (moodScoreMap[a[1]] > moodScoreMap[b[1]] ? a : b), entries[0]) : ["", ""];
-    const worstDayEntry = entries.length > 0 ? entries.reduce<[string, string]>((a, b) => (moodScoreMap[a[1]] < moodScoreMap[b[1]] ? a : b), entries[0]) : ["", ""];
+    const bestDayEntry = entries.length > 0 ? entries.reduce<[string, string]>((a, b) => (moodScore(a[1]) > moodScore(b[1]) ? a : b), entries[0]) : ["", ""];
+    const worstDayEntry = entries.length > 0 ? entries.reduce<[string, string]>((a, b) => (moodScore(a[1]) < moodScore(b[1]) ? a : b), entries[0]) : ["", ""];
     return {
       avg,
       mostCommon,
@@ -435,15 +400,15 @@ export default function Dashboard() {
                 <div className="text-[#6C63A6] text-lg">How are you feeling today?</div>
                 <div className="flex items-center gap-4">
                   <span className="bg-[#B6A6CA] text-white rounded-full px-4 py-1 text-sm font-semibold shadow flex items-center gap-2">
-                    <span role="img" aria-label="streak">🔥</span> {streak} day streak
+                    <FaFire aria-hidden /> {streak} day streak
                   </span>
                   {todayMood ? (
                     <span className="bg-[#A09ABC] text-white rounded-full px-4 py-1 text-sm font-semibold shadow flex items-center gap-2">
-                      <span role="img" aria-label="mood">{todayMood.emoji}</span> {moodLabelMap[todayMood.emoji] || todayMood.emoji}
+                      <MoodIcon value={todayMood.emoji} /> {moodLabel(todayMood.emoji)}
                     </span>
                   ) : (
                     <span className="bg-[#A09ABC] text-white rounded-full px-4 py-1 text-sm font-semibold shadow flex items-center gap-2">
-                      Happy
+                      No mood yet
                     </span>
                   )}
                 </div>
@@ -469,13 +434,13 @@ export default function Dashboard() {
                 <div className="text-lg font-semibold text-[#6C63A6] mb-2">Today's Mood</div>
                 <div className="text-5xl mb-2">
                   {todayMood ? (
-                    <span>{todayMood.emoji}</span>
+                    <MoodIcon value={todayMood.emoji} className="text-[#A09ABC]" />
                   ) : (
-                    <span className="opacity-30">🙂</span>
+                    <FaRegSmile className="opacity-30 text-[#A09ABC]" />
                   )}
                 </div>
                 <div className="text-[#A09ABC] text-base font-semibold mb-4">
-                  {todayMood ? moodLabelMap[todayMood.emoji] || todayMood.emoji : 'No mood logged'}
+                  {todayMood ? moodLabel(todayMood.emoji) : 'No mood logged'}
                 </div>
                 <button onClick={handleUpdateMood} className="bg-[#A09ABC] text-white px-5 py-2 rounded-lg font-bold shadow hover:bg-[#B6A6CA] transition">
                   Update Mood
@@ -517,10 +482,10 @@ export default function Dashboard() {
                 </div>
                 <ul className="text-[#6C63A6] text-sm space-y-2 w-full">
                   <li className="flex items-center gap-2">
-                    <span className="text-[#A09ABC]">✔️</span>
+                    <FaRegSmile className="text-[#A09ABC] shrink-0" />
                     {recentMood ? (
                       <>
-                        Logged mood: <span className="font-semibold">{moodLabelMap[recentMood.emoji] || recentMood.emoji}</span>
+                        Logged mood: <span className="font-semibold">{moodLabel(recentMood.emoji)}</span>
                         <span className="ml-auto text-[#A09ABC]/70">{formatTime(recentMood.created_at)}</span>
                       </>
                     ) : (
@@ -528,7 +493,7 @@ export default function Dashboard() {
                     )}
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="text-[#A09ABC]">📝</span>
+                    <FaBook className="text-[#A09ABC] shrink-0" />
                     {recentJournal ? (
                       <>
                         Created journal entry{recentJournal.title ? `: ${recentJournal.title}` : ""}
@@ -539,7 +504,7 @@ export default function Dashboard() {
                     )}
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="text-[#A09ABC]">✅</span>
+                    <FaCheckCircle className="text-[#A09ABC] shrink-0" />
                     {recentTask ? (
                       <>
                         Completed task: <span className="font-semibold">{recentTask.description}</span>
@@ -587,10 +552,12 @@ export default function Dashboard() {
               {moodOptions.map((mood) => (
                 <button
                   key={mood}
-                  className={`text-3xl w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${modalMood === mood ? 'border-[#A09ABC] bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white' : 'border-transparent bg-white dark:bg-[#23234a] text-[#6C63A6] dark:text-[#A09ABC]'}`}
+                  title={moodLabel(mood)}
+                  className={`text-2xl w-16 h-16 rounded-xl flex flex-col items-center justify-center transition-all duration-200 border-2 ${modalMood === mood ? 'border-[#A09ABC] bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white' : 'border-transparent bg-white dark:bg-[#23234a] text-[#6C63A6] dark:text-[#A09ABC]'}`}
                   onClick={() => setModalMood(mood)}
                 >
-                  {mood}
+                  <MoodIcon value={mood} />
+                  <span className="text-[10px] mt-1 leading-none">{moodLabel(mood)}</span>
                 </button>
               ))}
             </div>
@@ -627,10 +594,12 @@ export default function Dashboard() {
               {moodOptions.map((mood) => (
                 <button
                   key={mood}
-                  className={`text-3xl w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${dashboardSelectedMood === mood ? 'border-[#A09ABC] bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white' : 'border-transparent bg-white dark:bg-[#23234a] text-[#6C63A6] dark:text-[#A09ABC]'}`}
+                  title={moodLabel(mood)}
+                  className={`text-2xl w-16 h-16 rounded-xl flex flex-col items-center justify-center transition-all duration-200 border-2 ${dashboardSelectedMood === mood ? 'border-[#A09ABC] bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white' : 'border-transparent bg-white dark:bg-[#23234a] text-[#6C63A6] dark:text-[#A09ABC]'}`}
                   onClick={() => setDashboardSelectedMood(mood)}
                 >
-                  {mood}
+                  <MoodIcon value={mood} />
+                  <span className="text-[10px] mt-1 leading-none">{moodLabel(mood)}</span>
                 </button>
               ))}
             </div>
@@ -668,8 +637,8 @@ export default function Dashboard() {
               // Filter moods for today and this week
               const dailyMoods = Object.entries(monthlyMoods).filter(([date]) => date === todayStr);
               const weeklyMoods = Object.entries(monthlyMoods).filter(([date]) => date >= weekStr && date <= todayStr);
-              const dailyMoodScore = dailyMoods.length > 0 ? moodScoreMap[dailyMoods[0][1]] : null;
-              const weeklyMoodScores = weeklyMoods.map(([_, emoji]) => moodScoreMap[emoji]);
+              const dailyMoodScore = dailyMoods.length > 0 ? moodScore(dailyMoods[0][1]) : null;
+              const weeklyMoodScores = weeklyMoods.map(([_, emoji]) => moodScore(emoji));
               const weeklyAvgMood = weeklyMoodScores.length > 0 ? (weeklyMoodScores.reduce((a, b) => a + b, 0) / weeklyMoodScores.length).toFixed(2) : null;
               const weeklyMostCommon = (() => {
                 if (weeklyMoods.length === 0) return null;
@@ -685,40 +654,40 @@ export default function Dashboard() {
                   {/* Daily Report */}
                   <div className="mb-4 p-3 rounded-lg bg-[#F3F0F9]">
                     <div className="font-semibold text-[#A09ABC] mb-1">Today’s Report</div>
-                    <div>Average Mood: <b>{dailyMoodScore ? dailyMoodScore + ' (' + Object.entries(moodLabelMap).find(([k]) => moodScoreMap[k] === dailyMoodScore)?.[1] + ')' : 'No mood logged'}</b></div>
+                    <div>Average Mood: <b>{dailyMoodScore ? dailyMoodScore + ' (' + moodLabel(dailyMoods[0][1]) + ')' : 'No mood logged'}</b></div>
                     <div>Entries: <b>{dailyMoods.length}</b></div>
                   </div>
                   {/* Weekly Report */}
                   <div className="mb-4 p-3 rounded-lg bg-[#F3F0F9]">
                     <div className="font-semibold text-[#A09ABC] mb-1">This Week’s Report</div>
-                    <div>Average Mood: <b>{weeklyAvgMood ? weeklyAvgMood + ' (' + (weeklyMostCommon ? moodLabelMap[weeklyMostCommon as keyof typeof moodLabelMap] : '') + ')' : 'No moods logged'}</b></div>
-                    <div>Most Common Mood: <b>{weeklyMostCommon ? moodLabelMap[weeklyMostCommon as keyof typeof moodLabelMap] + ' ' + weeklyMostCommon : 'N/A'}</b></div>
+                    <div>Average Mood: <b>{weeklyAvgMood ? weeklyAvgMood + ' (' + (weeklyMostCommon ? moodLabel(weeklyMostCommon) : '') + ')' : 'No moods logged'}</b></div>
+                    <div>Most Common Mood: <b>{weeklyMostCommon ? moodLabel(weeklyMostCommon) : 'N/A'}</b></div>
                     <div>Entries: <b>{weeklyMoods.length}</b></div>
                   </div>
                   {/* Monthly Report */}
                   <div className="mb-2">
                     <span className="font-semibold text-[#A09ABC]">Average Mood Score:</span>
-                    <span className="ml-2">{stats.avg} <span className="text-xs text-[#6C63A6]">(1 = lowest, 5 = happiest)</span></span>
+                    <span className="ml-2">{stats.avg.toFixed(2)} <span className="text-xs text-[#6C63A6]">(1 = lowest, 5 = happiest)</span></span>
                   </div>
                   <div className="mb-2">
                     <span className="font-semibold text-[#A09ABC]">Most Frequent Mood:</span>
-                    <span className="ml-2">{moodLabelMap[modalMostCommon as keyof typeof moodLabelMap]} {modalMostCommon}</span>
+                    <span className="ml-2">{moodLabel(modalMostCommon)}</span>
                   </div>
                   <div className="mb-2">
                     <span className="font-semibold text-[#A09ABC]">Best Day:</span>
-                    <span className="ml-2">{modalBestDay[0]} — {moodLabelMap[modalBestDay[1] as keyof typeof moodLabelMap]} {modalBestDay[1]}</span>
+                    <span className="ml-2">{modalBestDay[0]} — {moodLabel(modalBestDay[1])}</span>
                   </div>
                   <div className="mb-2">
                     <span className="font-semibold text-[#A09ABC]">Toughest Day:</span>
-                    <span className="ml-2">{modalWorstDay[0]} — {moodLabelMap[modalWorstDay[1] as keyof typeof moodLabelMap]} {modalWorstDay[1]}</span>
+                    <span className="ml-2">{modalWorstDay[0]} — {moodLabel(modalWorstDay[1])}</span>
                   </div>
                   <div className="mt-6 text-[#6C63A6] text-base font-semibold">
                     {avgNum >= 4 ? (
-                      <>You’ve been in a <span className="text-[#A09ABC] font-bold">great mood</span> this month! Keep it up and continue spreading positivity. 🎉</>
+                      <>You’ve been in a <span className="text-[#A09ABC] font-bold">great mood</span> this month! Keep it up and continue spreading positivity.</>
                     ) : avgNum >= 3 ? (
-                      <>Your mood has been <span className="text-[#A09ABC] font-bold">balanced</span>. Remember to take time for yourself and celebrate small wins. 😊</>
+                      <>Your mood has been <span className="text-[#A09ABC] font-bold">balanced</span>. Remember to take time for yourself and celebrate small wins.</>
                     ) : (
-                      <>It’s been a <span className="text-[#A09ABC] font-bold">challenging month</span>. Remember, it’s okay to have ups and downs. Take care of yourself and reach out if you need support. 💜</>
+                      <>It’s been a <span className="text-[#A09ABC] font-bold">challenging month</span>. Remember, it’s okay to have ups and downs. Take care of yourself and reach out if you need support.</>
                     )}
                   </div>
                 </>
