@@ -115,7 +115,15 @@ export default function Journal() {
       // Update existing entry
       const { data, error } = await supabase
         .from("journal")
-        .update({ content: newEntry, public: isPublic, updated_at: new Date().toISOString(), title: entryTitle, mood: selectedMood || undefined })
+        .update({
+          content: newEntry,
+          public: isPublic,
+          updated_at: new Date().toISOString(),
+          title: entryTitle,
+          mood: selectedMood,
+          // only move the entry if the user picked a different day
+          ...(entryDate !== localDateKey(editingEntry.created_at) ? { created_at: timestampForDay(entryDate) } : {}),
+        })
         .eq("id", editingEntry.id)
         .select();
       if (!error && data && data[0]) {
