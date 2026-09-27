@@ -120,7 +120,7 @@ export default function TaskPage() {
   return (
     <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`} style={{ position: 'relative', overflow: 'hidden' }}>
       <Head>
-        <title>Task Manager | Reflectly</title>
+        <title>Task Manager | Muni</title>
       </Head>
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       {/* Glowing background for dark mode (background only, zIndex: 0) */}

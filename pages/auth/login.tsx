@@ -70,7 +70,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden">
       <Head>
-        <title>Login | Reflectly</title>
+        <title>Login | Muni</title>
       </Head>
       {/* Animated Background */}
       <div

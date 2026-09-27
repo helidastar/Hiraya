@@ -103,7 +103,7 @@ return (
   return (
     <>
       <Head>
-        <title>Mood Tracker - Reflectly</title>
+        <title>Mood Tracker - Muni</title>
         <meta name="description" content="Track your daily moods" />
       </Head>
       <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`}>

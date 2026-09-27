@@ -5,7 +5,7 @@ const Terms = () => (
     <h1>Terms & Conditions</h1>
     <p><strong>Last updated:</strong> July 7, 2025</p>
     <p>
-      Please read these terms and conditions (&quot;terms&quot;, &quot;terms and conditions&quot;) carefully before using the ZAMDevs app operated by us.
+      Please read these terms and conditions (&quot;terms&quot;, &quot;terms and conditions&quot;) carefully before using the Muni app operated by us.
     </p>
     <h2>Conditions of Use</h2>
     <p>

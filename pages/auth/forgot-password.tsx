@@ -28,7 +28,7 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden">
       <Head>
-        <title>Forgot Password | Reflectly</title>
+        <title>Forgot Password | Muni</title>
       </Head>
       <div className="fixed inset-0 -z-10 animate-gradient-bg" style={{ background: `linear-gradient(120deg, #6C63A6, #A09ABC, #B6A6CA, #D5CFE1, #E1D8E9, #D4BEBE)`, backgroundSize: "300% 300%" }} />
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-md min-h-[300px] h-auto bg-white/25 border border-white/40 rounded-3xl shadow-2xl backdrop-blur-2xl mx-1 my-4 overflow-hidden" style={{ boxShadow: "0 8px 32px 0 #A09ABC33, 0 0 0 1.5px #fff3" }}>

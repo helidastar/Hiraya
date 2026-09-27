@@ -5,7 +5,7 @@ const PrivacyPolicy = () => (
     <h1>Privacy Policy</h1>
     <p><strong>Last updated:</strong> July 7, 2025</p>
     <p>
-      ZAMDevs (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) operates the ZAMDevs app. This page informs you of our policies regarding the collection, use, and disclosure of personal information when you use our Service.
+      ZAMDevs (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) operates the Muni app. This page informs you of our policies regarding the collection, use, and disclosure of personal information when you use our Service.
     </p>
     <h2>Information Collection and Use</h2>
     <p>

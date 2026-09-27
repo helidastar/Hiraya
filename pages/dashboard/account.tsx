@@ -185,7 +185,7 @@ function handleCancelEdit() {
 return (
 <div className={`relative min-h-screen w-full flex animate-gradient-bg overflow-hidden ${darkMode ? 'bg-[#1a1a2e]' : ''}`}>
 <Head>
-<title>Account | Reflectly</title>
+<title>Account | Muni</title>
 </Head>
 {/* Sidebar */}
 <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -334,13 +334,13 @@ return (
           <input type="text" placeholder="Instagram URL" value={socialLinks.instagram} onChange={e => setSocialLinks({ ...socialLinks, instagram: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
           <input type="text" placeholder="Twitter URL" value={socialLinks.twitter} onChange={e => setSocialLinks({ ...socialLinks, twitter: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
           <input type="text" placeholder="GitHub URL" value={socialLinks.github} onChange={e => setSocialLinks({ ...socialLinks, github: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
-          <input type="text" placeholder="Reflectly URL" value={socialLinks.reflectly} onChange={e => setSocialLinks({ ...socialLinks, reflectly: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
+          <input type="text" placeholder="Muni URL" value={socialLinks.reflectly} onChange={e => setSocialLinks({ ...socialLinks, reflectly: e.target.value })} className={`rounded px-3 py-2 border border-[#A09ABC]/30 focus:outline-none ${darkMode ? 'bg-[#23234a] text-[#A09ABC]' : ''}`} />
         </div>
       ) : null}
       <div className="flex flex-row gap-6 justify-center">
         <a href={socialLinks.facebook || '#'} title="Facebook" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.facebook ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/facebook.png" alt="Facebook" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
         <a href={socialLinks.instagram || '#'} title="Instagram" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.instagram ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/instagram.png" alt="Instagram" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
-        <a href={socialLinks.reflectly || '#'} title="Reflectly" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.reflectly ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/reflectly.png" alt="Reflectly" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
+        <a href={socialLinks.reflectly || '#'} title="Muni" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.reflectly ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/reflectly.png" alt="Muni" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
         <a href={socialLinks.github || '#'} title="GitHub" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.github ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/github.png" alt="GitHub" className="w-9 h-9 rounded-full shadow-md object-cover bg-white p-1" /> </a>
         <a href={socialLinks.twitter || '#'} title="Twitter" target="_blank" rel="noopener noreferrer" className={`hover:scale-110 transition${!socialLinks.twitter ? ' opacity-40 pointer-events-none' : ''}`}> <img src="/pictures/twitter.png" alt="Twitter" className="w-9 h-9 rounded-full shadow-md object-cover" /> </a>
       </div>

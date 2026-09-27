@@ -116,7 +116,7 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden">
       <Head>
-        <title>{error ? `Error: ${error}` : "Sign Up | Reflectly"}</title>
+        <title>{error ? `Error: ${error}` : "Sign Up | Muni"}</title>
       </Head>
       {/* Animated Background */}
       <div

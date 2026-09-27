@@ -236,7 +236,7 @@ export default function Journal() {
   return (
     <>
       <Head>
-        <title>Journal - Reflectly</title>
+        <title>Journal - Muni</title>
         <meta name="description" content="Your personal journal entries" />
         <style jsx>{`
           @keyframes twinkle {

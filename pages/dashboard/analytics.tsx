@@ -156,7 +156,7 @@ export default function Analytics() {
   return (
     <>
       <Head>
-        <title>Analytics Dashboard - Reflectly</title>
+        <title>Analytics Dashboard - Muni</title>
         <meta name="description" content="Mood and Journal Analytics" />
       </Head>
       <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`} style={{ position: 'relative' }}>

@@ -321,7 +321,7 @@ export default function Feed() {
   return (
     <>
       <Head>
-        <title>Community Feed | Reflectly</title>
+        <title>Community Feed | Muni</title>
         <meta name="description" content="See public reflections from the community" />
       </Head>
       <div className={`flex min-h-screen ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#B6A6CA] to-[#D4BEBE]'}`}>

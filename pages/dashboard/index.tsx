@@ -416,10 +416,10 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>Reflectly Dashboard</title>
+        <title>Muni Dashboard</title>
         <meta
           name="description"
-          content="Reflectly minimalist journaling dashboard"
+          content="Muni minimalist journaling dashboard"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

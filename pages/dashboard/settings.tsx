@@ -134,7 +134,7 @@ export default function Settings() {
   return (
     <>
       <Head>
-        <title>Settings - Reflectly</title>
+        <title>Settings - Muni</title>
       </Head>
       <Modal
         open={!!modal}
@@ -211,7 +211,7 @@ export default function Settings() {
       </Modal>
       <LegalModal open={open === "privacy"} onClose={() => setOpen(null)} title="Privacy Policy">
         <p><strong>Last updated:</strong> July 7, 2025</p>
-        <p>ZAMDevs ("we", "our", or "us") operates the ZAMDevs app. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.</p>
+        <p>ZAMDevs ("we", "our", or "us") operates the Muni app. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.</p>
         <h3>Information We Collect</h3>
         <p>We may collect personal information such as your name, email address, and usage data to provide and improve our services. We do not sell your personal information to third parties.</p>
         <h3>How We Use Your Information</h3>
@@ -227,7 +227,7 @@ export default function Settings() {
       </LegalModal>
       <LegalModal open={open === "terms"} onClose={() => setOpen(null)} title="Terms & Conditions">
         <p><strong>Last updated:</strong> July 7, 2025</p>
-        <p>By accessing or using the ZAMDevs app, you agree to be bound by these Terms & Conditions. If you do not agree, please do not use our Service.</p>
+        <p>By accessing or using the Muni app, you agree to be bound by these Terms & Conditions. If you do not agree, please do not use our Service.</p>
         <h3>Use of Service</h3>
         <p>You agree to use the app only for lawful purposes and in accordance with these terms. You are responsible for maintaining the confidentiality of your account information.</p>
         <h3>Intellectual Property</h3>
@@ -333,8 +333,8 @@ export default function Settings() {
                   onClick={() => {
                     if (navigator.share) {
                       navigator.share({
-                        title: 'Reflectly',
-                        text: 'Check out Reflectly!',
+                        title: 'Muni',
+                        text: 'Check out Muni!',
                         url: window.location.origin,
                       });
                     } else {

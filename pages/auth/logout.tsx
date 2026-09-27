@@ -30,7 +30,7 @@ export default function Logout() {
       style={{ cursor: 'default' }}
     >
       <Head>
-        <title>Logout | Reflectly</title>
+        <title>Logout | Muni</title>
         <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
       </Head>
       {/* Animated Moon */}

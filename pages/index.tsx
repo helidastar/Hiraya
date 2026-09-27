@@ -23,7 +23,7 @@ export default function Home() {
   return (
     <div className="w-full min-h-screen relative overflow-hidden">
       <Head>
-        <title>Welcome | Reflectly</title>
+        <title>Welcome | Muni</title>
         {/* Font link moved to _document.tsx */}
       </Head>
       {/* Animated Background */}
@@ -135,7 +135,7 @@ export default function Home() {
                 transition={{ duration: 1, ease: "easeOut" }}
               >
                 <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#A09ABC] mb-4 drop-shadow" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                  Welcome to Reflectly
+                  Welcome to Muni
                 </h1>
                 <p className="mb-8 text-lg text-[#A09ABC] text-center" style={{ fontFamily: 'DM Serif Display, serif' }}>
                   Click the button below to begin your journey
@@ -167,10 +167,10 @@ export default function Home() {
                 transition={{ duration: 1, ease: "easeOut" }}
               >
                 <h2 className="font-serif text-3xl md:text-4xl font-bold text-[#A09ABC] mb-4" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                  About Reflectly
+                  About Muni
                 </h2>
                 <p className="mb-8 text-lg text-[#A09ABC] text-center" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                  Reflectly is your personal mindfulness companion. This journaling app helps you reflect, grow, and stay in tune with your emotions. You can write daily entries, tag how you feel, and look back on your past reflections in a calm and clutter-free space. Whether you&#39;re having a great day or facing challenges, Reflectly gives you a safe and private place to understand your thoughts and build emotional strength. It&#39;s simple, serene, and designed to support your journey every step of the way.
+                  Muni is your personal mindfulness companion. This journaling app helps you reflect, grow, and stay in tune with your emotions. You can write daily entries, tag how you feel, and look back on your past reflections in a calm and clutter-free space. Whether you&#39;re having a great day or facing challenges, Muni gives you a safe and private place to understand your thoughts and build emotional strength. It&#39;s simple, serene, and designed to support your journey every step of the way.
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.08 }}
@@ -281,7 +281,7 @@ function FeatureToggle({ nextSlide, prevSlide }: { nextSlide: () => void; prevSl
       <div className="flex flex-col items-center mb-4">
         <span className="text-4xl mb-2">🌟</span>
         <p className="text-[#A09ABC] text-lg text-center font-serif italic mb-2">
-          Explore what makes Reflectly magical!
+          Explore what makes Muni magical!
         </p>
       </div>
       <ul className="text-[#6C63A6] text-lg mt-2 space-y-3 text-left list-none w-full max-w-xl mx-auto">
