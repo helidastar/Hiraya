@@ -2,9 +2,9 @@
 
 # Hiraya
 
-**A calm space to reflect**
+**A journal that remembers how you felt**
 
-A journaling and mood tracking web app. Write daily entries, log how you feel, see your patterns over time, and share selected reflections with a small community.
+Write daily entries, check in with your mood in one tap, and watch your month fill in from night to sunrise. A calm, private space to reflect, with a small community to share with when you want to.
 
 [![Status](https://img.shields.io/badge/status-live-brightgreen)](https://hiraya-green.vercel.app)
 ![Next.js](https://img.shields.io/badge/Next.js-black?logo=next.js&logoColor=white)
@@ -33,68 +33,68 @@ A journaling and mood tracking web app. Write daily entries, log how you feel, s
 
 ## About
 
-*Hiraya* is a Filipino word for the fruit of one's hopes and dreams, as in *hiraya manawari*, "may your heart's wishes come true". The app gives each user a private journal, a daily check-in, a board for their hopes and an analytics view of their mood over time. Entries are private by default. Users can choose to publish an entry to the community feed, where others can like and comment on it.
+*Hiraya* is a Filipino word for the fruit of one's hopes and dreams, as in *hiraya manawari*, "may your heart's wishes come true".
 
-Hiraya started in July 2025 as the ZAMDevs team project (originally named Reflectly, later Muni). This repository is a fork that renames, fixes and prepares it for deployment.
+Most journaling apps are either a blank page or a long form. **Hiraya** keeps it small: pick how you feel, write a few lines if you want to, and let the days add up. Each day gets a mood color, so a month of entries reads at a glance, from deep indigo nights to bright sunrise days. Entries are private by default; you can share one with the community feed when you choose to.
 
 ## Key Features
 
-- **Journal**: create, edit and delete entries with a title, date and mood
-- **Daily check-in**: log one mood per day from a set of thirteen moods, with a few optional lines that are saved as a private journal entry
-- **Mood calendar and streaks**: see the current month and your logging streak on the dashboard
-- **Analytics**: average and most common mood for today, this week, this month and overall
-- **Hopes**: drag-and-drop Dreaming, Working on it and Came true columns
-- **Community feed**: public entries with likes and comments
-- **Account**: profile picture, header image, bio, social links, password change and account deletion
-- **Light and dark mode**
+- **Daily check-in**: pick one of thirteen moods in one tap, and add a few lines that are saved as a private journal entry
+- **Journal**: write, edit and look back on entries, each with a title, date and mood
+- **Mood calendar and streaks**: every day of the month in its mood color, plus your logging streak
+- **Hopes**: a board for the things you hope for, from *Dreaming* to *Working on it* to *Came true*
+- **Analytics**: average and most common mood for this week, this month and overall, and your mood mix over time
+- **Community feed**: read entries others chose to share, and like or comment on them
+- **Account**: profile picture, cover image, bio, social links, password change and account deletion
+
+## Design
+
+- **Day and night**: a pink-lavender dusk theme and a deep indigo night theme, with starry skies and frosted glass. It follows your device on first visit and remembers your choice after.
+- **Made for phones and desktops**: a bottom tab bar with a raised check-in button on phones, and a floating side rail on tablets and desktops.
+- **Gentle motion**: pages and cards ease into place, and all movement turns off for people who ask their device for reduced motion.
+- **Private by default**: row level security in the database means entries, moods and hopes can only be read by their owner unless an entry is shared.
 
 ## Tech Stack
 
-Next.js 15 (Pages Router) · React 19 · TypeScript · Tailwind CSS · Supabase (PostgreSQL, Auth, Storage) · Recharts · Framer Motion · Vercel
+Next.js 15 (Pages Router) · React 19 · TypeScript · Tailwind CSS · Framer Motion · Recharts · Supabase (PostgreSQL, Auth, Storage) · Vercel
 
-## Quick Start
+## Getting Started
 
 ```bash
 git clone https://github.com/helidastar/Hiraya.git
 cd Hiraya
-git checkout development
 npm install
 cp .env.example .env.local   # then fill in your Supabase URL and anon key
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Full setup, including the database, is in [docs/ONBOARDING.md](docs/ONBOARDING.md).
+Open [http://localhost:3000](http://localhost:3000). Full setup, including the database and deployment, is in [docs/ONBOARDING.md](docs/ONBOARDING.md).
 
 ## Project Structure
 
 ```
 src/
   pages/         Routes (Next.js Pages Router)
-    auth/        Login, signup, logout, password reset
+    auth/        Log in, sign up, log out, password reset
     dashboard/   Dashboard, journal, check-in, hopes, analytics, settings, account
-  components/    Shared UI: sidebar, modals, mood list and mood picker
-  lib/           Supabase client, local date helpers, mood logging
-  styles/        Global CSS (Tailwind)
+  components/    Shared UI: navigation, page layout, starfield, modals, mood list and mood picker
+  lib/           Supabase client, profile and mood helpers, local date helpers, motion settings
+  styles/        Global CSS and theme colors (Tailwind)
 supabase/
   migrations/    Database schema, row level security and functions, in run order
-public/          Images and icons
-docs/            Documentation
+public/          Logo, icons and images
+docs/            Documentation and screenshots
 ```
 
-## Branches
+Work happens on `feat/<area>` branches, which merge into `development` and then `main`. See [Branches](docs/DOCUMENTATION.md#branches).
 
-`feat/<area>` → `development` → `main`. See [Branches](docs/DOCUMENTATION.md#branches) for details.
+## Documentation
+
+> **The complete project documentation is in [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md).**
+>
+> It covers the features and pages, architecture, data model, row level security, and how moods, journal entries and the feed work.
 
 ## Contributors
-
-Hiraya was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo)).
-
-| | |
-|---|---|
-| **School** | Cebu Institute of Technology - University |
-| **Course** | CPE340 Modern Systems Analysis and Design |
-| **Instructor** | Engr. Mervin John C. Tampus |
-| **Team** | ZAMDevs, 2025 |
 
 | Name | GitHub |
 |------|--------|
@@ -103,3 +103,11 @@ Hiraya was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/Z
 | Maria Mhikyla Jayno | [@mhiksNmatch](https://github.com/mhiksNmatch) |
 | Zana Capao | [@zanacapao](https://github.com/zanacapao) |
 | Raffy Bonilla | [@raffybonilla](https://github.com/raffybonilla) |
+
+<div align="center">
+
+**CPE340 Modern Systems Analysis and Design · Cebu Institute of Technology – University** · Instructor: Engr. Mervin John C. Tampus
+
+Built by Team ZAMDevs, 2025 · Originally [ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo) (Reflectly, later Muni)
+
+</div>
