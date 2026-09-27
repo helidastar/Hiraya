@@ -67,13 +67,13 @@
 - Feature branches merge into `development` with `--no-ff`, titled `merge(<scope>): <summary>`.
 
 ### Contributors
-| GitHub |
-|--------|
-| [@marshmallowdevz](https://github.com/marshmallowdevz) |
-| [@helidastar](https://github.com/helidastar) (Charity Ricabo) |
-| [@mhiksNmatch](https://github.com/mhiksNmatch) |
-| [@raffybonilla](https://github.com/raffybonilla) |
-| [@zanacapao](https://github.com/zanacapao) |
+| Name | GitHub |
+|------|--------|
+| Charity Ricabo (maintainer) | [@helidastar](https://github.com/helidastar) |
+| marshmallowdevz | [@marshmallowdevz](https://github.com/marshmallowdevz) |
+| Maria Mhikyla Jayno | [@mhiksNmatch](https://github.com/mhiksNmatch) |
+| zanacapao | [@zanacapao](https://github.com/zanacapao) |
+| raffybonilla | [@raffybonilla](https://github.com/raffybonilla) |
 
 ---
 
