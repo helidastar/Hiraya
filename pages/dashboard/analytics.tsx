@@ -103,10 +103,10 @@ export default function Analytics() {
 
   // Helper to get mood stats for a date range
   function getMoodStatsForRange(moods: { date: string; emoji: string }[], start: Date, end: Date) {
-    const filtered = moods.filter(m => {
-      const d = new Date(m.date);
-      return d >= start && d <= end;
-    });
+    // compare yyyy-mm-dd keys so whole local days are included
+    const from = localDateKey(start);
+    const to = localDateKey(end);
+    const filtered = moods.filter(m => m.date >= from && m.date <= to);
     if (filtered.length === 0) return null;
     const scores = filtered.map(m => moodScore(m.emoji));
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
@@ -218,7 +218,6 @@ export default function Analytics() {
                 {/* Today */}
                 {(() => {
                   const today = new Date();
-                  const todayStr = today.toISOString().split('T')[0];
                   const daily = getMoodStatsForRange(moodDetails, today, today);
                   return (
                     <div className="p-5 rounded-xl bg-[#F3F0F9] shadow flex flex-col h-full border-2 border-[#A09ABC]/20">
