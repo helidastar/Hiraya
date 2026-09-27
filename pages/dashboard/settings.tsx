@@ -28,18 +28,32 @@ function FeedbackForm({ onSend }: { onSend: () => void }) {
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   return (
     <form
       className="flex flex-col gap-2"
-      onSubmit={e => {
+      onSubmit={async e => {
         e.preventDefault();
-        onSend();
+        setSending(true);
+        setError(null);
+        const { data: { user } } = await supabase.auth.getUser();
+        const { error } = await supabase.from('feedback').insert([{
+          user_id: user?.id,
+          name: nameRef.current?.value,
+          email: emailRef.current?.value,
+          message: messageRef.current?.value,
+        }]);
+        setSending(false);
+        if (error) setError('Could not send your feedback. Please try again.');
+        else onSend();
       }}
     >
       <input ref={nameRef} type="text" placeholder="Name" className="p-2 rounded border border-[#A09ABC]/30" required />
       <input ref={emailRef} type="email" placeholder="Email" className="p-2 rounded border border-[#A09ABC]/30" required />
       <textarea ref={messageRef} placeholder="Message" className="p-2 rounded border border-[#A09ABC]/30" rows={3} required />
-      <button type="submit" className="mt-2 px-4 py-2 rounded bg-[#A09ABC] text-white font-semibold">Send</button>
+      <button type="submit" disabled={sending} className="mt-2 px-4 py-2 rounded bg-[#A09ABC] text-white font-semibold disabled:opacity-60">{sending ? 'Sending...' : 'Send'}</button>
+      {error && <div className="text-red-600 text-sm">{error}</div>}
     </form>
   );
 }
