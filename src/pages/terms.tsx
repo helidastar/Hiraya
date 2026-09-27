@@ -17,7 +17,7 @@ const Terms = () => (
     </p>
     <h2>Intellectual Property</h2>
     <p>
-      You agree that all materials, products, and services provided on this app are the property of Charity Ricabo, including all copyrights, trade secrets, trademarks, patents, and other intellectual property.
+      Muni is maintained by Charity Ricabo and was originally built by the ZAMDevs team. The app&apos;s name, design and code belong to its creators. You keep full ownership of the journal entries, comments and other content you create, and you can delete them or your account at any time.
     </p>
     <h2>User Accounts</h2>
     <p>
