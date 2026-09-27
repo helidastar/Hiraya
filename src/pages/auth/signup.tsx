@@ -98,7 +98,7 @@ export default function Signup() {
       // Show confirmation message for truly new users
       setSuccess(true);
       setLoading(false);
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }

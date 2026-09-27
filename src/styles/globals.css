@@ -4,8 +4,6 @@
 @tailwind utilities;
 /* stylelint-enable */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&display=swap');
-
 /* Theme tokens as RGB channels, used by the colors in tailwind.config.js.
    Dark mode follows the app's own toggle (the "dark" class on <html>). */
 /* Light: a pink-lavender dusk. Dark: a deep indigo night. */
@@ -197,55 +195,6 @@ a {
   text-decoration: none;
 }
 
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@layer utilities {
-  .animate-spin-slow {
-    animation: spin 6s linear infinite;
-  }
-}
-
-.font-serif {
-  font-family: 'DM Serif Display', serif;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-18px); }
-}
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-@keyframes sweep {
-  0% { left: -60%; }
-  100% { left: 120%; }
-}
-.animate-sweep {
-  animation: sweep 3.5s linear infinite;
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
-}
-.animate-twinkle {
-  animation: twinkle 2.2s ease-in-out infinite;
-}
-
-@keyframes bounce-slow {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-.animate-bounce-slow {
-  animation: bounce-slow 2.2s infinite;
-}
-
 @keyframes cloud-left {
   0% { transform: translateX(0); }
   100% { transform: translateX(60px); }
@@ -260,30 +209,4 @@ a {
 .animate-cloud-right {
   animation: cloud-right 22s linear infinite alternate;
 }
-@keyframes float-moon {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-18px); }
-}
-.animate-float-moon {
-  animation: float-moon 7s ease-in-out infinite;
-}
 
-@keyframes gradient-bg {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-.animate-gradient-bg {
-  background: linear-gradient(120deg, #A09ABC, #B6A6CA, #E1D8E9, #D4BEBE);
-  background-size: 200% 200%;
-  animation: gradient-bg 12s ease-in-out infinite;
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(-20px) scale(0.95); }
-  10% { opacity: 1; transform: translateY(0) scale(1); }
-  90% { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-20px) scale(0.95); }
-}
-.animate-fade-in-out {
-  animation: fadeInOut 2.5s both;
-}

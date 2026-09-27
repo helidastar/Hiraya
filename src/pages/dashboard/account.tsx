@@ -18,15 +18,6 @@ const SOCIALS = [
   { key: 'reflectly', label: 'Hiraya', icon: '/pictures/reflectly.png' },
 ] as const;
 
-type JournalEntry = {
-id: string;
-created_at: string;
-title?: string;
-content?: string;
-// Add other fields as needed from your journal table
-[key: string]: unknown;
-};
-
 export default function Account() {
 const [header, setHeader] = useState("/default-header.jpg");
 const [avatar, setAvatar] = useState("/default-avatar.png");
