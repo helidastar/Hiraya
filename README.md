@@ -1,42 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+<div align="center">
 
-## Getting Started
+# Muni
 
-First, run the development server:
+**A calm space to reflect**
 
-npm install
+A journaling and mood tracking web app. Write daily entries, log how you feel, see your patterns over time, and share selected reflections with a small community.
+
+![Status](https://img.shields.io/badge/status-in%20testing-blue)
+![Next.js](https://img.shields.io/badge/Next.js-black?logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
+
+**[Read the Full Documentation](docs/DOCUMENTATION.md)** · **[Developer Setup](docs/ONBOARDING.md)**
+
+</div>
+
+---
+
+## About
+
+*Muni* comes from the Filipino *muni-muni*, to reflect or ponder. The app gives each user a private journal, a daily mood log, a simple task board and an analytics view of their mood over time. Entries are private by default. Users can choose to publish an entry to the community feed, where others can like and comment on it.
+
+Muni started in July 2025 as the ZAMDevs team project (originally named Reflectly). This repository is a fork that renames, fixes and prepares it for deployment.
+
+## Key Features
+
+- **Journal**: create, edit and delete entries with a title, date and mood
+- **Mood tracker**: log one mood per day from a set of thirteen moods
+- **Mood calendar and streaks**: see the current month and your logging streak on the dashboard
+- **Analytics**: average and most common mood for today, this week, this month and overall
+- **Task board**: drag-and-drop To Do, In Progress and Done columns
+- **Community feed**: public entries with likes and comments
+- **Account**: profile picture, header image, bio, social links, password change and account deletion
+- **Light and dark mode**
+
+## Tech Stack
+
+Next.js 15 (Pages Router) · React 19 · TypeScript · Tailwind CSS · Supabase (PostgreSQL, Auth, Storage) · Recharts · Framer Motion · Vercel
+
+## Quick Start
 
 ```bash
+git clone https://github.com/helidastar/Muni.git
+cd Muni
+git checkout development
+npm install
+cp .env.example .env.local   # then fill in your Supabase URL and anon key
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Full setup, including the database, is in [docs/ONBOARDING.md](docs/ONBOARDING.md).
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```
+src/
+  pages/         Routes (Next.js Pages Router)
+    auth/        Login, signup, logout, password reset
+    dashboard/   Dashboard, journal, mood, tasks, analytics, settings, account
+  components/    Shared UI: sidebar, modals, mood list and mood picker
+  lib/           Supabase client, local date helpers, mood logging
+  styles/        Global CSS (Tailwind)
+supabase/
+  migrations/    Database schema, row level security and functions, in run order
+public/          Images and icons
+docs/            Documentation
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+## Branches
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`feat/<area>` → `development` → `main`. See [Branches](docs/DOCUMENTATION.md#branches) for details.
 
-## Learn More
+## Contributors
 
-To learn more about Next.js, take a look at the following resources:
+Muni was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo)). It is now maintained by Charity Ricabo.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+| Name | GitHub |
+|------|--------|
+| Charity Ricabo | [@helidastar](https://github.com/helidastar) |
+| Aleyah Jose | [@marshmallowdevz](https://github.com/marshmallowdevz) |
+| Maria Mhikyla Jayno | [@mhiksNmatch](https://github.com/mhiksNmatch) |
+| Zana Capao | [@zanacapao](https://github.com/zanacapao) |
+| Raffy Bonilla | [@raffybonilla](https://github.com/raffybonilla) |
