@@ -96,6 +96,18 @@ export default function Settings() {
   const [showRateModal, setShowRateModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [rated, setRated] = useState(false);
+  const [ratingSaving, setRatingSaving] = useState(false);
+  const [ratingError, setRatingError] = useState<string | null>(null);
+
+  async function submitRating() {
+    setRatingSaving(true);
+    setRatingError(null);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from('feedback').insert([{ user_id: user?.id, rating }]);
+    setRatingSaving(false);
+    if (error) setRatingError('Could not send your rating. Please try again.');
+    else setRated(true);
+  }
 
   const router = useRouter();
 
@@ -347,7 +359,7 @@ export default function Settings() {
           </div>
         </main>
       </div>
-      <Modal open={showRateModal} onClose={() => { setShowRateModal(false); setRating(0); setRated(false); }} title="Rate the Website">
+      <Modal open={showRateModal} onClose={() => { setShowRateModal(false); setRating(0); setRated(false); setRatingError(null); }} title="Rate the Website">
         {!rated ? (
           <div className="flex flex-col items-center gap-4">
             <div className="flex gap-1 text-3xl">
@@ -364,12 +376,13 @@ export default function Settings() {
               ))}
             </div>
             <button
-              className="px-4 py-2 rounded bg-[#A09ABC] text-white font-semibold mt-2"
-              disabled={rating === 0}
-              onClick={() => setRated(true)}
+              className="px-4 py-2 rounded bg-[#A09ABC] text-white font-semibold mt-2 disabled:opacity-60"
+              disabled={rating === 0 || ratingSaving}
+              onClick={submitRating}
             >
-              Submit
+              {ratingSaving ? 'Sending...' : 'Submit'}
             </button>
+            {ratingError && <div className="text-red-600 text-sm">{ratingError}</div>}
           </div>
         ) : (
           <div className="text-center text-[#6C63A6] font-semibold">Thank you for rating our website!</div>
