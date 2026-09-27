@@ -4,18 +4,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import type { IconType } from "react-icons";
-import { FaHome, FaBook, FaSmile, FaTasks, FaChartBar, FaCog, FaUser, FaRss, FaEllipsisH, FaTimes } from "react-icons/fa";
+import { FaHome, FaBook, FaSmile, FaStar, FaChartBar, FaCog, FaUser, FaRss, FaEllipsisH, FaTimes } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
 import { ease } from "../lib/motion";
 
 type Item = { label: string; short: string; path: string; Icon: IconType };
 
-// Shown in the phone's bottom bar (Mood sits in the raised middle slot)
+// Shown in the phone's bottom bar (Check-in sits in the raised middle slot)
 const PRIMARY: Item[] = [
   { label: "Dashboard", short: "Home", path: "/dashboard", Icon: FaHome },
   { label: "Journal", short: "Journal", path: "/dashboard/journal", Icon: FaBook },
-  { label: "Mood Tracker", short: "Mood", path: "/dashboard/mood", Icon: FaSmile },
-  { label: "Tasks", short: "Tasks", path: "/dashboard/task", Icon: FaTasks },
+  { label: "Check-in", short: "Check-in", path: "/dashboard/mood", Icon: FaSmile },
+  { label: "Hopes", short: "Hopes", path: "/dashboard/hopes", Icon: FaStar },
 ];
 
 // Behind "More" on phones
@@ -116,7 +116,7 @@ export default function Sidebar() {
               <Link
                 key={item.path}
                 href={item.path}
-                aria-label="Mood Tracker"
+                aria-label="Check-in"
                 aria-current={active ? "page" : undefined}
                 className="-mt-8 flex w-16 flex-col items-center gap-1 text-[11px] font-semibold text-muted"
               >

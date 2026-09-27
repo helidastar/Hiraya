@@ -7,7 +7,7 @@ import { rise, stagger, ease } from "../lib/motion";
 import { MOODS, moodTone } from "../components/moods";
 import Starfield, { Sparkle } from "../components/Starfield";
 import ThemeToggle from "../components/ThemeToggle";
-import { FaBook, FaRegSmile, FaCalendarAlt, FaColumns, FaChartLine, FaGlobeAsia, FaLock, FaMoon, FaHome, FaTasks, FaEllipsisH, FaSmile, FaArrowRight, FaFire, FaCheck, FaThLarge, FaListOl, FaSignInAlt } from "react-icons/fa";
+import { FaBook, FaRegSmile, FaCalendarAlt, FaChartLine, FaGlobeAsia, FaLock, FaMoon, FaHome, FaStar, FaEllipsisH, FaSmile, FaArrowRight, FaFire, FaCheck, FaThLarge, FaListOl, FaSignInAlt } from "react-icons/fa";
 
 // An example month of mood scores (1 = lowest, 5 = happiest)
 const SAMPLE_MONTH = [3, 4, 4, 2, 1, 2, 3, 4, 5, 5, 4, 3, 3, 2, 3, 4, 4, 5, 4, 3, 2, 2, 3, 4, 5, 5, 4, 4, 3, 5];
@@ -20,10 +20,10 @@ const JOURNAL_LINE = "Walked home under the stars tonight. Felt lighter than I h
 
 const FEATURES = [
   { icon: <FaBook />, title: "Journal", text: "Write, edit and look back on daily entries. Each one keeps the mood you felt when you wrote it.", span: "lg:col-span-2" },
-  { icon: <FaRegSmile />, title: "Mood log", text: "Pick from 13 moods, once a day, in one tap.", span: "" },
+  { icon: <FaRegSmile />, title: "Daily check-in", text: "Pick from 13 moods and add a few lines if you like.", span: "" },
   { icon: <FaCalendarAlt />, title: "Mood calendar", text: "Every day of the month in its mood color.", span: "" },
   { icon: <FaChartLine />, title: "Analytics", text: "Spot patterns over weeks and months.", span: "" },
-  { icon: <FaColumns />, title: "Task board", text: "Drag tasks from To do to Done.", span: "" },
+  { icon: <FaStar />, title: "Hopes", text: "Drag your hopes from Dreaming to Came true.", span: "" },
   { icon: <FaGlobeAsia />, title: "Community feed", text: "Share an entry publicly if you want to, then like and comment on what others have shared.", span: "lg:col-span-2" },
   { icon: <FaLock />, title: "Private by default", text: "Entries stay yours unless you choose to share them. Nothing is public until you say so.", span: "lg:col-span-2" },
   { icon: <FaMoon />, title: "Day and night", text: "A dusk theme and a night theme. Try it:", span: "lg:col-span-2", toggle: true },
@@ -379,7 +379,7 @@ function Phone() {
             <span key={i} className={`flex w-12 flex-col items-center rounded-xl py-1 text-sm ${i === 0 ? "bg-iris-soft text-iris" : "text-muted"}`}><Icon /></span>
           ))}
           <span className="-mt-6 flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-iris to-blush text-lg text-white shadow-glow ring-4 ring-[#21174a]"><FaSmile /></span>
-          {[FaTasks, FaEllipsisH].map((Icon, i) => (
+          {[FaStar, FaEllipsisH].map((Icon, i) => (
             <span key={i} className="flex w-12 flex-col items-center py-1 text-sm text-muted"><Icon /></span>
           ))}
         </div>
