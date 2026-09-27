@@ -8,6 +8,7 @@ import { useDarkMode } from "../../components/DarkModeContext";
 import { FaPlus, FaPen, FaTrash, FaGlobeAsia, FaLock, FaUndo, FaRedo } from "react-icons/fa";
 import MoodPicker from "../../components/MoodPicker";
 import { MoodIcon, moodLabel } from "../../components/moods";
+import { localDateKey, timestampForDay } from "../../lib/dates";
 
 type JournalEntry = {
   id: string;
@@ -20,22 +21,12 @@ type JournalEntry = {
   mood?: string;
 };
 
-// yyyy-mm-dd in the user's own timezone (toISOString would use UTC)
-const localDateString = (date: Date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-
-// Keep the current time for today's entries; use local noon for back-dated ones
-const entryTimestamp = (dateStr: string) => {
-  if (dateStr === localDateString(new Date())) return new Date().toISOString();
-  const [y, m, d] = dateStr.split('-').map(Number);
-  return new Date(y, m - 1, d, 12).toISOString();
-};
 
 export default function Journal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [newEntry, setNewEntry] = useState("");
   const [entryTitle, setEntryTitle] = useState("");
-  const [entryDate, setEntryDate] = useState(() => localDateString(new Date()));
+  const [entryDate, setEntryDate] = useState(() => localDateKey());
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(true);
@@ -98,7 +89,7 @@ export default function Journal() {
     setNewEntry("");
     setEntryTitle("");
     setSelectedMood(null);
-    setEntryDate(localDateString(new Date()));
+    setEntryDate(localDateKey());
     setIsPublic(false);
     setModalOpen(false);
   };
@@ -108,7 +99,7 @@ export default function Journal() {
     setNewEntry(entry.content);
     setEntryTitle(entry.title || "");
     setSelectedMood(entry.mood || null);
-    setEntryDate(localDateString(new Date(entry.created_at)));
+    setEntryDate(localDateKey(entry.created_at));
     setIsPublic(!!entry.public);
     setModalOpen(true);
   };
@@ -141,7 +132,7 @@ export default function Journal() {
           public: isPublic,
           title: entryTitle,
           mood: selectedMood,
-          created_at: entryTimestamp(entryDate),
+          created_at: timestampForDay(entryDate),
         }])
         .select();
       if (!error && data) {
