@@ -244,7 +244,7 @@ export default function Settings() {
         <h3>Changes to This Policy</h3>
         <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated date.</p>
         <h3>Contact Us</h3>
-        <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:ZAMDevs@gmail.com">ZAMDevs@gmail.com</a>.</p>
+        <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:chrdy.4u@gmail.com">chrdy.4u@gmail.com</a>.</p>
       </LegalModal>
       <LegalModal open={open === "terms"} onClose={() => setOpen(null)} title="Terms & Conditions">
         <p><strong>Last updated:</strong> July 7, 2025</p>
@@ -258,7 +258,7 @@ export default function Settings() {
         <h3>Changes to Terms</h3>
         <p>We reserve the right to modify these Terms at any time. Continued use of the app after changes constitutes acceptance of the new terms.</p>
         <h3>Contact Us</h3>
-        <p>If you have any questions about these Terms, please contact us at <a href="mailto:ZAMDevs@gmail.com">ZAMDevs@gmail.com</a>.</p>
+        <p>If you have any questions about these Terms, please contact us at <a href="mailto:chrdy.4u@gmail.com">chrdy.4u@gmail.com</a>.</p>
       </LegalModal>
       <LegalModal open={open === "cookies"} onClose={() => setOpen(null)} title="Cookies Policy">
         <p><strong>Last updated:</strong> July 7, 2025</p>
@@ -272,7 +272,7 @@ export default function Settings() {
         <h3>Changes to This Policy</h3>
         <p>We may update our Cookies Policy from time to time. Updates will be posted on this page with a new effective date.</p>
         <h3>Contact Us</h3>
-        <p>If you have any questions about this Cookies Policy, please contact us at <a href="mailto:ZAMDevs@gmail.com">ZAMDevs@gmail.com</a>.</p>
+        <p>If you have any questions about this Cookies Policy, please contact us at <a href="mailto:chrdy.4u@gmail.com">chrdy.4u@gmail.com</a>.</p>
       </LegalModal>
       <div className={`flex min-h-screen transition-colors duration-300 items-center justify-center ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]'}`}>
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />

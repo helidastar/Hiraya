@@ -29,7 +29,7 @@ const PrivacyPolicy = () => (
     </p>
     <h2>Contact Us</h2>
     <p>
-      If you have any questions about this Privacy Policy, please contact us at <a href="mailto:ZAMDevs@gmail.com">ZAMDevs@gmail.com</a>.
+      If you have any questions about this Privacy Policy, please contact us at <a href="mailto:chrdy.4u@gmail.com">chrdy.4u@gmail.com</a>.
     </p>
   </main>
 );

@@ -33,7 +33,7 @@ const Terms = () => (
     </p>
     <h2>Contact Us</h2>
     <p>
-      If you have any questions about these Terms, please contact us at <a href="mailto:ZAMDevs@gmail.com">ZAMDevs@gmail.com</a>.
+      If you have any questions about these Terms, please contact us at <a href="mailto:chrdy.4u@gmail.com">chrdy.4u@gmail.com</a>.
     </p>
   </main>
 );
