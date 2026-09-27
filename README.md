@@ -81,6 +81,23 @@ Every entry keeps the mood you felt when you wrote it, shown as a colored edge a
   <sub>Shown with sample data.</sub>
 </div>
 
+## Analytics and Community
+
+Analytics turns your check-ins into averages for today, this week, this month and all time, a twelve-week grid of mood colors and your mood mix. The community feed shows entries people chose to share, with likes and comments, sorted by newest or most liked.
+
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/analytics-dark.jpg">
+    <img src="docs/screenshots/analytics-light.jpg" alt="Hiraya analytics page: average mood cards for today, the last 7 days, this month and all time, a twelve-week grid of mood colors, and a mood mix breakdown" width="440">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/feed-dark.jpg">
+    <img src="docs/screenshots/feed-light.jpg" alt="Hiraya community feed: shared entries from other users, each with a name, date, mood tag, title, text, likes and comments" width="440">
+  </picture>
+  <br>
+  <sub>Shown with sample data.</sub>
+</div>
+
 ## Design
 
 - **Day and night**: a pink-lavender dusk theme and a deep indigo night theme, with starry skies and frosted glass. It follows your device on first visit and remembers your choice after.
