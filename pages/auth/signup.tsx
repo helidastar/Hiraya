@@ -81,15 +81,17 @@ export default function Signup() {
         return;
       }
 
-      // If user was created but not yet confirmed
-      if (data.user && !data.user.confirmed_at) {
+      // With email confirmation on, Supabase hides existing accounts by returning
+      // a user with no identities instead of an error.
+      if (data.user && data.user.identities?.length === 0) {
         setError("This email is already registered. Please use another email or sign in.");
         setLoading(false);
         return;
       }
 
-      // If user was created successfully and confirmed, create the profile
-      if (data.user) {
+      // Only create the profile now if we already have a session. Otherwise
+      // login creates it after the email is confirmed.
+      if (data.user && data.session) {
         await supabase
           .from("profiles")
           .insert([
