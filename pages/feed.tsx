@@ -84,6 +84,7 @@ export default function Feed() {
             public, 
             user_id,
             profiles:profiles(id, full_name, avatar_url),
+            likes(user_id),
             title
           `)
           .eq("public", true);
@@ -107,11 +108,11 @@ export default function Feed() {
           throw error;
         }
 
-        // Add mock likes data for demonstration
-        const entriesWithLikes = (data || []).map(entry => ({
+        const { data: { user } } = await supabase.auth.getUser();
+        const entriesWithLikes = (data || []).map(({ likes, ...entry }) => ({
           ...entry,
-          likes_count: 0,
-          is_liked: false,
+          likes_count: likes?.length ?? 0,
+          is_liked: !!user && (likes || []).some((l: { user_id: string }) => l.user_id === user.id),
           profiles: Array.isArray(entry.profiles) ? entry.profiles[0] || { id: '', full_name: '', avatar_url: '' } : entry.profiles || { id: '', full_name: '', avatar_url: '' }
         }));
 
@@ -150,12 +151,12 @@ export default function Feed() {
   }, [entries]);
 
   const handleLike = async (entryId: string) => {
-    if (!currentUser) {
-      // You could show a login prompt here
-      return;
-    }
+    if (!currentUser) return;
+    const target = entries.find(e => e.id === entryId);
+    if (!target) return;
+    const wasLiked = !!target.is_liked;
 
-    setEntries(prev => prev.map(entry => 
+    const toggle = (list: FeedEntry[]) => list.map(entry =>
       entry.id === entryId 
         ? { 
             ...entry, 
@@ -163,10 +164,14 @@ export default function Feed() {
             likes_count: entry.is_liked ? (entry.likes_count || 1) - 1 : (entry.likes_count || 0) + 1
           }
         : entry
-    ));
+    );
 
-    // Here you would typically update the database
-    // await supabase.from('likes').upsert({...})
+    // Update the UI right away, then undo it if the database call fails
+    setEntries(toggle);
+    const { error } = wasLiked
+      ? await supabase.from('likes').delete().eq('entry_id', entryId).eq('user_id', currentUser.id)
+      : await supabase.from('likes').insert([{ entry_id: entryId, user_id: currentUser.id }]);
+    if (error) setEntries(toggle);
   };
 
   const handleShare = async (entry: FeedEntry) => {
