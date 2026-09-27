@@ -232,7 +232,7 @@ export default function Settings() {
       </Modal>
       <LegalModal open={open === "privacy"} onClose={() => setOpen(null)} title="Privacy Policy">
         <p><strong>Last updated:</strong> July 7, 2025</p>
-        <p>ZAMDevs ("we", "our", or "us") operates the Muni app. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.</p>
+        <p>Charity Ricabo ("we", "our", or "us") operates the Muni app. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.</p>
         <h3>Information We Collect</h3>
         <p>We may collect personal information such as your name, email address, and usage data to provide and improve our services. We do not sell your personal information to third parties.</p>
         <h3>How We Use Your Information</h3>
@@ -252,9 +252,9 @@ export default function Settings() {
         <h3>Use of Service</h3>
         <p>You agree to use the app only for lawful purposes and in accordance with these terms. You are responsible for maintaining the confidentiality of your account information.</p>
         <h3>Intellectual Property</h3>
-        <p>All content, features, and functionality of the app are the exclusive property of ZAMDevs and are protected by intellectual property laws.</p>
+        <p>All content, features, and functionality of the app are the exclusive property of Charity Ricabo and are protected by intellectual property laws.</p>
         <h3>Limitation of Liability</h3>
-        <p>ZAMDevs is not liable for any indirect, incidental, or consequential damages arising from your use of the app.</p>
+        <p>Charity Ricabo is not liable for any indirect, incidental, or consequential damages arising from your use of the app.</p>
         <h3>Changes to Terms</h3>
         <p>We reserve the right to modify these Terms at any time. Continued use of the app after changes constitutes acceptance of the new terms.</p>
         <h3>Contact Us</h3>
@@ -262,7 +262,7 @@ export default function Settings() {
       </LegalModal>
       <LegalModal open={open === "cookies"} onClose={() => setOpen(null)} title="Cookies Policy">
         <p><strong>Last updated:</strong> July 7, 2025</p>
-        <p>This Cookies Policy explains how ZAMDevs uses cookies and similar technologies when you use our app.</p>
+        <p>This Cookies Policy explains how Charity Ricabo uses cookies and similar technologies when you use our app.</p>
         <h3>What Are Cookies?</h3>
         <p>Cookies are small text files stored on your device to help us improve your experience and analyze usage of our app.</p>
         <h3>How We Use Cookies</h3>
