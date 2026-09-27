@@ -166,12 +166,16 @@ setNewHeaderFile(null);
 setTimeout(() => setProfileSuccess(false), 3000);
 }
 
-  // Handler for Delete Account (placeholder)
-  const handleDeleteAccount = () => {
-    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      // TODO: Add backend logic for account deletion
-      alert("Account deletion is not implemented yet.");
+  // Deletes the account and all its data (supabase/migrations/*_delete_own_account.sql).
+  // The confirm modal below is the confirmation step.
+  const handleDeleteAccount = async () => {
+    const { error } = await supabase.rpc('delete_own_account');
+    if (error) {
+      setProfileError('Failed to delete account: ' + error.message);
+      return;
     }
+    await supabase.auth.signOut();
+    router.push('/auth/signup');
   };
 
 
