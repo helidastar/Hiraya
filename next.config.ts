@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Tasks became Hopes; keep old links working
+  async redirects() {
+    return [{ source: '/dashboard/task', destination: '/dashboard/hopes', permanent: false }];
+  },
   images: {
     remotePatterns: supabaseHost ? [{ protocol: 'https', hostname: supabaseHost }] : [],
   },

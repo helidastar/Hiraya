@@ -37,7 +37,8 @@ export default function App({ Component, pageProps }: AppProps) {
     {/* reducedMotion="user" turns off movement for people who ask their OS for less motion */}
     <MotionConfig reducedMotion="user">
     <div className={`${body.variable} ${display.variable} font-sans`}>
-      <Toaster position="top-right" reverseOrder={false} />
+      {/* Above pop-ups (z-[10000]) so save messages are never hidden behind them */}
+      <Toaster position="top-right" reverseOrder={false} containerStyle={{ zIndex: 10001 }} />
       {/* Each page fades in when you navigate to it. Opacity only: a transform
           here would shift the fixed sidebar and pop-ups while it runs. */}
       <motion.div

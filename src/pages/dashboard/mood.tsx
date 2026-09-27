@@ -8,6 +8,8 @@ import Starfield from "../../components/Starfield";
 import { MOODS, MoodIcon, getMood, moodLabel, moodTone } from "../../components/moods";
 import { localDateKey } from "../../lib/dates";
 import { setMoodForDay } from "../../lib/moodLog";
+import { ensureProfile } from "../../lib/profile";
+import toast from "react-hot-toast";
 import { rise, ease } from "../../lib/motion";
 
 type Mood = {
@@ -22,6 +24,9 @@ export default function MoodTracker() {
   const [moodData, setMoodData] = useState<Mood[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdvice, setShowAdvice] = useState(false);
+  const [note, setNote] = useState("");
+  const [savedNote, setSavedNote] = useState(false);
+  const [saving, setSaving] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -51,10 +56,25 @@ export default function MoodTracker() {
       router.push("/auth/login");
       return;
     }
-    // one mood per day: saving again replaces today's mood
+    setSaving(true);
+    // One mood per day: saving again replaces today's mood
     await setMoodForDay(user.id, localDateKey(), selectedMood);
+    // A few lines, if written, become a private journal entry with the same mood
+    const text = note.trim();
+    let noteSaved = false;
+    if (text) {
+      const { error: profileError } = await ensureProfile(user);
+      const { error } = profileError
+        ? { error: { message: profileError } }
+        : await supabase.from("journal").insert([{ content: text, user_id: user.id, mood: selectedMood, public: false }]);
+      if (error) toast.error(`Your mood was saved, but the note wasn't: ${error.message}`);
+      else noteSaved = true;
+    }
+    setSavedNote(noteSaved);
     setShowAdvice(true);
     setSelectedMood("");
+    setNote("");
+    setSaving(false);
     fetchMoodData();
   }
 
@@ -66,7 +86,7 @@ export default function MoodTracker() {
   const latest = getMood(moodData[0]?.emoji);
 
   return (
-    <PageShell title="Mood tracker" eyebrow="One mood per day" loading={loading}>
+    <PageShell title="Check-in" eyebrow="One mood a day, a few lines if you like" loading={loading}>
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         {/* The check-in is always the night sky, like the phone on the landing page */}
         <motion.section variants={rise} className="night dark p-6 sm:p-8">
@@ -74,7 +94,7 @@ export default function MoodTracker() {
           <div className="planet top-[calc(100%-3.5rem)] opacity-80" />
           <div className="relative">
           <h2 className="font-display text-3xl">How are you feeling today?</h2>
-          <p className="mt-1 text-muted">Saving again replaces today&apos;s mood.</p>
+          <p className="mt-1 text-muted">Checking in again replaces today&apos;s mood.</p>
           <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-5">
             {MOODS.map(({ value: mood, label, Icon }) => {
               const active = selectedMood === mood;
@@ -95,8 +115,33 @@ export default function MoodTracker() {
               );
             })}
           </div>
-          <button onClick={submitMood} disabled={!selectedMood} className="btn-primary mt-7 w-full py-3.5 text-base sm:w-auto sm:px-10">
-            Save mood
+          {/* Step two appears once a mood is picked */}
+          <AnimatePresence initial={false}>
+            {selectedMood && (
+              <motion.div
+                key="note"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4, ease }}
+                className="overflow-hidden"
+              >
+                <label htmlFor="checkin-note" className="mb-2 mt-6 block text-sm font-semibold">
+                  Write a few lines <span className="font-normal text-muted">(optional, saved privately to your journal)</span>
+                </label>
+                <textarea
+                  id="checkin-note"
+                  rows={4}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder={`What made today feel ${moodLabel(selectedMood).toLowerCase()}?`}
+                  className="w-full resize-none rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-ink backdrop-blur placeholder:text-muted/70 focus:border-iris focus:outline-none focus:ring-4 focus:ring-iris/20"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <button onClick={submitMood} disabled={!selectedMood || saving} className="btn-primary mt-6 w-full py-3.5 text-base sm:w-auto sm:px-10">
+            {saving ? "Saving..." : note.trim() ? "Save check-in" : "Save mood"}
           </button>
           <AnimatePresence>
             {showAdvice && latest && (
@@ -110,7 +155,7 @@ export default function MoodTracker() {
               >
                 <latest.Icon className="shrink-0 text-3xl" aria-hidden />
                 <div>
-                  <p className="font-semibold">Saved: {latest.label}</p>
+                  <p className="font-semibold">Saved: {latest.label}{savedNote ? " and a journal entry" : ""}</p>
                   <p className="opacity-80">{latest.advice}</p>
                 </div>
               </motion.div>
