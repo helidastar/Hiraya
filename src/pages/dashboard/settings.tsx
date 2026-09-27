@@ -252,7 +252,7 @@ export default function Settings() {
         <h3>Use of Service</h3>
         <p>You agree to use the app only for lawful purposes and in accordance with these terms. You are responsible for maintaining the confidentiality of your account information.</p>
         <h3>Intellectual Property</h3>
-        <p>Muni is maintained by Charity Ricabo and was originally built by the ZAMDevs team. The app&apos;s name, design and code belong to its creators. You keep full ownership of the journal entries, comments and other content you create, and you can delete them or your account at any time.</p>
+        <p>Muni was originally built by the ZAMDevs team. The app&apos;s name, design and code belong to its creators. You keep full ownership of the journal entries, comments and other content you create, and you can delete them or your account at any time.</p>
         <h3>Limitation of Liability</h3>
         <p>Charity Ricabo is not liable for any indirect, incidental, or consequential damages arising from your use of the app.</p>
         <h3>Changes to Terms</h3>
