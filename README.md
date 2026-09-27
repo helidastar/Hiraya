@@ -14,6 +14,13 @@ A journaling and mood tracking web app. Write daily entries, log how you feel, s
 
 **[Live Demo](https://hiraya-green.vercel.app)** · **[Read the Full Documentation](docs/DOCUMENTATION.md)** · **[Developer Setup](docs/ONBOARDING.md)**
 
+<a href="https://hiraya-green.vercel.app">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/landing-dark.jpg">
+    <img src="docs/screenshots/landing-light.jpg" alt="Hiraya landing page: the headline &quot;A journal that remembers how you felt&quot; beside a phone showing the daily mood check-in, over a starry purple sky" width="900">
+  </picture>
+</a>
+
 </div>
 
 ---
