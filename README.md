@@ -6,13 +6,13 @@
 
 A journaling and mood tracking web app. Write daily entries, log how you feel, see your patterns over time, and share selected reflections with a small community.
 
-![Status](https://img.shields.io/badge/status-in%20testing-blue)
+[![Status](https://img.shields.io/badge/status-live-brightgreen)](https://hiraya-green.vercel.app)
 ![Next.js](https://img.shields.io/badge/Next.js-black?logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
 
-**[Read the Full Documentation](docs/DOCUMENTATION.md)** · **[Developer Setup](docs/ONBOARDING.md)**
+**[Live Demo](https://hiraya-green.vercel.app)** · **[Read the Full Documentation](docs/DOCUMENTATION.md)** · **[Developer Setup](docs/ONBOARDING.md)**
 
 </div>
 
