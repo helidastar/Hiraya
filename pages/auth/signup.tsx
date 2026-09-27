@@ -223,9 +223,6 @@ export default function Signup() {
               <path d="M60 50v-8a8 8 0 1 1 16 0v8" stroke="#6C63A6" strokeWidth="2" fill="none" />
             </svg>
           </motion.div>
-          {/* Sparkles */}
-          <motion.div className="absolute left-2 top-2 text-[#A09ABC] text-xs md:text-lg opacity-70" animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}>✦</motion.div>
-          <motion.div className="absolute right-2 bottom-2 text-[#B6A6CA] text-xs md:text-lg opacity-60" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>✧</motion.div>
         </div>
       </div>
       <LegalModal open={showTerms} onClose={() => setShowTerms(false)} title="Terms of Service">
