@@ -17,7 +17,7 @@ const Terms = () => (
     </p>
     <h2>Intellectual Property</h2>
     <p>
-      You agree that all materials, products, and services provided on this app are the property of ZAMDevs, including all copyrights, trade secrets, trademarks, patents, and other intellectual property.
+      You agree that all materials, products, and services provided on this app are the property of Charity Ricabo, including all copyrights, trade secrets, trademarks, patents, and other intellectual property.
     </p>
     <h2>User Accounts</h2>
     <p>
@@ -25,7 +25,7 @@ const Terms = () => (
     </p>
     <h2>Limitation of Liability</h2>
     <p>
-      ZAMDevs is not liable for any damages that may occur to you as a result of your misuse of our app.
+      Charity Ricabo is not liable for any damages that may occur to you as a result of your misuse of our app.
     </p>
     <h2>Changes to These Terms</h2>
     <p>
