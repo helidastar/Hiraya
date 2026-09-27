@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { useDarkMode } from "../../components/DarkModeContext";
 import { FaCalendarDay, FaChartLine, FaCalendarAlt, FaStar } from "react-icons/fa";
 import { getMood, moodLabel, moodScore } from "../../components/moods";
+import { localDateKey } from "../../lib/dates";
 import {
   XAxis,
   YAxis,
@@ -60,7 +61,7 @@ export default function Analytics() {
         .from("moods")
         .select("created_at, emoji")
         .eq("user_id", session.user.id);
-      setMoodDetails((moods || []).map(m => ({ date: m.created_at.split('T')[0], emoji: m.emoji })));
+      setMoodDetails((moods || []).map(m => ({ date: localDateKey(m.created_at), emoji: m.emoji })));
       // Fetch moods
       const { data: moodsGrouped } = await supabase
         .from("moods")
