@@ -72,6 +72,14 @@ docs/            Documentation
 
 `feat/<area>` → `development` → `main`. See [Branches](docs/DOCUMENTATION.md#branches) for details.
 
-## Credits
+## Contributors
 
-Built by the ZAMDevs team: [@marshmallowdevz](https://github.com/marshmallowdevz), [@helidastar](https://github.com/helidastar), [@mhiksNmatch](https://github.com/mhiksNmatch), [@raffybonilla](https://github.com/raffybonilla), [@zanacapao](https://github.com/zanacapao). Original repository: [marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo).
+Muni was originally built by the ZAMDevs team in July 2025 ([marshmallowdevz/ZAMDevs-new-repo](https://github.com/marshmallowdevz/ZAMDevs-new-repo)). It is now maintained by Charity Ricabo.
+
+| Name | GitHub |
+|------|--------|
+| Charity Ricabo (maintainer) | [@helidastar](https://github.com/helidastar) |
+| marshmallowdevz | [@marshmallowdevz](https://github.com/marshmallowdevz) |
+| Maria Mhikyla Jayno | [@mhiksNmatch](https://github.com/mhiksNmatch) |
+| zanacapao | [@zanacapao](https://github.com/zanacapao) |
+| raffybonilla | [@raffybonilla](https://github.com/raffybonilla) |
