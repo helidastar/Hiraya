@@ -60,7 +60,14 @@ function ChangePasswordForm({ onSuccess, onError }: { onSuccess: () => void, onE
           return;
         }
         setLoading(true);
-        // Supabase does not require current password for updateUser, but you can check it if you want
+        // Supabase does not ask for the current password, so confirm it by signing in again
+        const { data: { user } } = await supabase.auth.getUser();
+        const { error: verifyError } = await supabase.auth.signInWithPassword({ email: user?.email ?? '', password: current });
+        if (verifyError) {
+          setLoading(false);
+          onError('Current password is incorrect.');
+          return;
+        }
         const { error } = await supabase.auth.updateUser({ password: newPass });
         setLoading(false);
         if (error) onError(error.message);
