@@ -286,7 +286,7 @@ export default function Dashboard() {
   };
 
   const handleNewEntry = () => {
-    router.push('/journal/new');
+    router.push('/dashboard/journal?new=1');
   };
 
   // 3. When a mood is saved or deleted, always call both fetchMonthlyMoods and fetchRecentActivity
