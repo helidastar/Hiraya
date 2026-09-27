@@ -2,6 +2,8 @@ import Head from "next/head";
 import { useState, useEffect } from "react";
 import { FaBook, FaTasks, FaRss, FaFire, FaRegSmile, FaCheckCircle } from "react-icons/fa";
 import { MOODS, MoodIcon, moodLabel, moodScore } from "../../components/moods";
+import { localDateKey, dayBounds } from "../../lib/dates";
+import { setMoodForDay, clearMoodForDay } from "../../lib/moodLog";
 import Sidebar from "../../components/Sidebar";
 import { supabase } from "../../lib/supabaseClient";
 import { useDarkMode } from "../../components/DarkModeContext";
@@ -52,25 +54,22 @@ export default function Dashboard() {
   const fetchMonthlyMoods = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-    const endOfMonth = new Date(startOfMonth);
-    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
-    endOfMonth.setDate(0);
-    endOfMonth.setHours(23, 59, 59, 999);
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
     const { data: moods } = await supabase
       .from("moods")
       .select("emoji, created_at")
       .eq("user_id", user.id)
       .gte("created_at", startOfMonth.toISOString())
-      .lte("created_at", endOfMonth.toISOString());
+      .lt("created_at", startOfNextMonth.toISOString())
+      .order("created_at", { ascending: true });
 
     const moodsMap: { [date: string]: string } = {};
     if (moods) {
       moods.forEach((mood: any) => {
-        const dateStr = mood.created_at.split("T")[0];
+        const dateStr = localDateKey(mood.created_at);
         moodsMap[dateStr] = mood.emoji;
       });
     }
@@ -104,11 +103,11 @@ export default function Dashboard() {
       return;
     }
     // Build a set of unique dates with moods
-    const moodDates = new Set(moods.map((m: any) => m.created_at.split('T')[0]));
+    const moodDates = new Set(moods.map((m: any) => localDateKey(m.created_at)));
     let streakCount = 0;
     let current = new Date();
     while (true) {
-      const dateStr = current.toISOString().split('T')[0];
+      const dateStr = localDateKey(current);
       if (moodDates.has(dateStr)) {
         streakCount++;
         current.setDate(current.getDate() - 1);
@@ -156,12 +155,13 @@ export default function Dashboard() {
       .limit(1);
     setRecentMood(moods && moods[0]);
     // Fetch today's mood
-    const today = new Date().toISOString().split('T')[0];
+    const { start: todayStart, end: todayEnd } = dayBounds(localDateKey());
     const { data: todayMoodData } = await supabase
       .from("moods")
       .select("emoji, created_at")
       .eq("user_id", user.id)
-      .gte("created_at", today)
+      .gte("created_at", todayStart)
+      .lt("created_at", todayEnd)
       .order("created_at", { ascending: false })
       .limit(1);
     setTodayMood(todayMoodData && todayMoodData[0]);
@@ -238,7 +238,7 @@ export default function Dashboard() {
 
   // 1. Make the 'Update Mood' button always open the emoji picker modal for today's date
   const handleUpdateMood = () => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = localDateKey();
     setModalDate(todayStr);
     setModalMood(monthlyMoods[todayStr] || "");
     setModalOpen(true);
@@ -259,11 +259,7 @@ export default function Dashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const date = modalDate;
-    const { error } = await supabase
-      .from("moods")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("created_at", `${date}T00:00:00.000Z`);
+    const { error } = await clearMoodForDay(user.id, date);
     if (error) {
       console.error("Error deleting mood:", error);
       return;
@@ -288,15 +284,7 @@ export default function Dashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const date = modalDate;
-    const { error } = await supabase
-      .from("moods")
-      .upsert({
-        user_id: user.id,
-        emoji: modalMood,
-        created_at: `${date}T00:00:00.000Z`,
-      })
-      .eq("user_id", user.id)
-      .eq("created_at", `${date}T00:00:00.000Z`);
+    const { error } = await setMoodForDay(user.id, date, modalMood);
     if (error) {
       console.error("Error saving mood:", error);
       return;
@@ -311,16 +299,8 @@ export default function Dashboard() {
   const handleSaveDashboardMood = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const date = new Date().toISOString().split('T')[0];
-    const { error } = await supabase
-      .from("moods")
-      .upsert({
-        user_id: user.id,
-        emoji: dashboardSelectedMood,
-        created_at: `${date}T00:00:00.000Z`,
-      })
-      .eq("user_id", user.id)
-      .eq("created_at", `${date}T00:00:00.000Z`);
+    const date = localDateKey();
+    const { error } = await setMoodForDay(user.id, date, dashboardSelectedMood);
     if (error) {
       console.error("Error saving dashboard mood:", error);
       return;
@@ -589,7 +569,7 @@ export default function Dashboard() {
       {dashboardMoodModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white dark:bg-[#23234a] rounded-2xl p-8 shadow-lg min-w-[320px] max-w-[90vw]">
-            <h3 className="text-xl font-bold mb-4 text-center">Select Mood for {new Date().toISOString().split('T')[0]}</h3>
+            <h3 className="text-xl font-bold mb-4 text-center">Select Mood for {localDateKey()}</h3>
             <div className="grid grid-cols-5 gap-4 mb-6">
               {moodOptions.map((mood) => (
                 <button
@@ -630,10 +610,10 @@ export default function Dashboard() {
               const modalMostCommon = stats.mostCommon;
 
               // Daily and weekly stats
-              const todayStr = new Date().toISOString().split('T')[0];
+              const todayStr = localDateKey();
               const weekAgo = new Date();
               weekAgo.setDate(weekAgo.getDate() - 6);
-              const weekStr = weekAgo.toISOString().split('T')[0];
+              const weekStr = localDateKey(weekAgo);
               // Filter moods for today and this week
               const dailyMoods = Object.entries(monthlyMoods).filter(([date]) => date === todayStr);
               const weeklyMoods = Object.entries(monthlyMoods).filter(([date]) => date >= weekStr && date <= todayStr);
