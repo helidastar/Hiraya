@@ -95,7 +95,7 @@ export default function Feed() {
             query = query.order("created_at", { ascending: false });
             break;
           case 'popular':
-            // For now, we'll order by creation date, but you could add a likes_count field
+            // sorted by likes below, newest first as a tiebreaker
             query = query.order("created_at", { ascending: false });
             break;
           default:
@@ -116,6 +116,7 @@ export default function Feed() {
           profiles: Array.isArray(entry.profiles) ? entry.profiles[0] || { id: '', full_name: '', avatar_url: '' } : entry.profiles || { id: '', full_name: '', avatar_url: '' }
         }));
 
+        if (filter === 'popular') entriesWithLikes.sort((a, b) => b.likes_count - a.likes_count);
         setEntries(entriesWithLikes as unknown as FeedEntry[]);
       } catch {
         setError('Failed to load feed');
